@@ -27,11 +27,63 @@ if 'report_submitted' not in st.session_state:
 # Load data
 @st.cache_data
 def load_data():
+
     try:
         with open('interactions.json', 'r', encoding='utf-8') as f:
             return json.load(f)['interactions']
     except:
         return []
+# Load data
+@st.cache_data
+def load_data():
+    try:
+        with open('interactions.json', 'r', encoding='utf-8') as f:
+            return json.load(f)['interactions']
+    except:
+        return []
+
+# Normalize data to handle both formats (drug vs Drug Name, etc.)
+def normalize_data(data):
+    normalized = []
+    for item in data:
+        # If it already has 'drug' key, keep it (assuming correct)
+        if 'drug' in item:
+            normalized.append(item)
+            continue
+
+        # If it has 'Drug Name', convert from Excel format
+        if 'Drug Name' in item:
+            new_item = {
+                'drug': item['Drug Name'].lower().strip(),
+                'herb': item['Herb Name'].lower().strip(),
+                'risk': item['Risk Level'],
+                'explanation': f"{item.get('Explanation (English)', '')} {item.get('Explanation (Swahili)', '')}".strip(),
+                'recommendation': f"{item.get('Recommendation (English)', '')} {item.get('Recommendation (Swahili)', '')}".strip()
+            }
+            # Optional fields
+            if item.get('Scientific Name'):
+                new_item['scientific_name'] = item['Scientific Name']
+            if item.get('Mechanism'):
+                new_item['mechanism'] = item['Mechanism']
+            if item.get('Source'):
+                new_item['source'] = item['Source']
+            if item.get('CYP450 Effect'):
+                new_item['cyp_effect'] = item['CYP450 Effect']
+            if item.get('Notes'):
+                new_item['notes'] = item['Notes']
+            normalized.append(new_item)
+        else:
+            # Skip unknown entries – you can print a warning to the terminal if needed
+            print(f"Skipping unknown entry: {item}")
+            continue
+    return normalized
+
+# Load raw data
+raw_data = load_data()
+# Normalize it
+data = normalize_data(raw_data)
+# Load aliases (unchanged)
+aliases = load_aliases()
 
 # Load aliases
 @st.cache_data
