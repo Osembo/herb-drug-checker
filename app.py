@@ -384,13 +384,13 @@ if data:
                                   label_visibility="collapsed", key="herb_select")
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Quick Search Chips
-    st.markdown(f"### {texts['quick_search']}")
-
-     # Check button
+    # Check button
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         check_button = st.button(texts['check_button'], type="primary", use_container_width=True)
+    
+    # Quick Search Chips
+    st.markdown(f"### {texts['quick_search']}")
    
     quick_searches = [
         {"drug": "Warfarin", "herb": "mwarobaini", "risk": "High"},
@@ -610,4 +610,5 @@ st.markdown(f"""
         <p style="margin-top: 1rem;">❤️ {texts['footer']}</p>
     </div>
 """, unsafe_allow_html=True)
+
 
