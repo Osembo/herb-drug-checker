@@ -11,6 +11,7 @@ st.set_page_config(
     layout="centered",
     initial_sidebar_state="expanded"
 )
+st.write("🚀 App started – if you see this, the script is alive!")
 
 # Initialize session state
 if 'search_performed' not in st.session_state:
@@ -626,4 +627,5 @@ st.markdown(f"""
         <p style="margin-top: 1rem;">❤️ {texts['footer']}</p>
     </div>
 """, unsafe_allow_html=True)
+
 
