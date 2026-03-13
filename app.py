@@ -31,13 +31,14 @@ def load_data():
     try:
         with open('interactions.json', 'r', encoding='utf-8') as f:
             return json.load(f)['interactions']
-    except:
+    except Exception as e:
+        print(f"❌ Error loading interactions.json: {e}")
         return []
 
 # Normalize data to handle both formats (drug vs Drug Name, etc.)
 def normalize_data(data):
     normalized = []
-    for item in data:
+    for i, item in enumerate(data):
         if 'drug' in item:
             normalized.append(item)
             continue
@@ -63,18 +64,21 @@ def normalize_data(data):
                     new_item['notes'] = item['Notes']
                 normalized.append(new_item)
             except Exception as e:
-                # If conversion fails, skip (you could print a warning to console)
-                print(f"Skipping item due to error: {e}")
+                print(f"⚠️ Error converting item {i}: {e}")
                 continue
         else:
-            # Unknown format – skip
-            print(f"Skipping unknown item: {item}")
+            print(f"⚠️ Skipping item {i} – unknown format: {item}")
             continue
     return normalized
 
-# Load raw data and normalize
+print("🚀 Starting app...")
 raw_data = load_data()
+print(f"✅ Loaded {len(raw_data)} raw items")
+if raw_data:
+    print("📄 First raw item:", json.dumps(raw_data[0], indent=2)[:200])
+
 data = normalize_data(raw_data)
+print(f"✅ Normalized {len(data)} items")
 
 # Load aliases
 @st.cache_data
@@ -82,10 +86,12 @@ def load_aliases():
     try:
         with open('aliases.json', 'r', encoding='utf-8') as f:
             return json.load(f)
-    except:
+    except Exception as e:
+        print(f"⚠️ Could not load aliases: {e}")
         return {}
 
 aliases = load_aliases()
+print(f"✅ Loaded {len(aliases)} aliases")
 
 # Function to find canonical herb name
 def get_canonical_name(search_term):
@@ -122,9 +128,7 @@ def save_report(drug, herb, current_risk, reason, details):
     st.session_state.report_submitted = True
 
 # ------------------------------------------------------------
-# UI CSS (unchanged – you can keep your existing CSS here)
-# For brevity, I'm including the CSS from your earlier version.
-# You may replace it with your own if you prefer.
+# UI CSS (unchanged)
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -365,6 +369,12 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
+# Show a debug message if data is empty
+if not data:
+    st.error("⚠️ No interaction data loaded. Please check the logs for details.")
+    st.stop()  # Stop execution here – nothing else will render.
+
+# Continue only if data exists
 if data:
     # Get all unique drugs
     all_drugs = sorted(list(set([item['drug'].title() for item in data if item['drug'] != "any"])))
