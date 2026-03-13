@@ -387,6 +387,11 @@ if data:
     # Quick Search Chips
     st.markdown(f"### {texts['quick_search']}")
 
+     # Check button
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        check_button = st.button(texts['check_button'], type="primary", use_container_width=True)
+   
     quick_searches = [
         {"drug": "Warfarin", "herb": "mwarobaini", "risk": "High"},
         {"drug": "Tenofovir", "herb": "muguka", "risk": "High"},
@@ -422,11 +427,7 @@ if data:
                     st.session_state.search_performed = True
                     st.rerun()
 
-    # Check button
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        check_button = st.button(texts['check_button'], type="primary", use_container_width=True)
-
+   
     # Handle search
     if check_button:
         if not drug_input or not herb_input:
@@ -609,3 +610,4 @@ st.markdown(f"""
         <p style="margin-top: 1rem;">❤️ {texts['footer']}</p>
     </div>
 """, unsafe_allow_html=True)
+
