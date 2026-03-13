@@ -400,20 +400,25 @@ if data:
     st.markdown('</div>', unsafe_allow_html=True)
 
     # Quick Search Chips
-    st.markdown(f"### {texts['quick_search']}")
+st.markdown(f"### {texts['quick_search']}")
 
-    quick_searches = [
-        {"drug": "Warfarin", "herb": "mwarobaini", "risk": "High"},
-        {"drug": "Tenofovir", "herb": "muguka", "risk": "High"},
-        {"drug": "Metformin", "herb": "moringa", "risk": "Moderate"},
-        {"drug": "Lisinopril", "herb": "garlic", "risk": "Moderate"},
-    ]
+quick_searches = [
+    {"drug": "Warfarin", "herb": "mwarobaini", "risk": "High"},
+    {"drug": "Tenofovir", "herb": "muguka", "risk": "High"},
+    {"drug": "Metformin", "herb": "moringa", "risk": "Moderate"},
+    {"drug": "Lisinopril", "herb": "garlic", "risk": "Moderate"},
+]
 
-    cols = st.columns(len(quick_searches))
-    for i, search in enumerate(quick_searches):
-        with cols[i]:
-            risk_color = "🔴" if search['risk'] == "High" else "🟡"
-            if st.button(f"{risk_color} {search['drug']} + {search['herb']}", key=f"chip_{i}"):
+cols = st.columns(len(quick_searches))
+for i, search in enumerate(quick_searches):
+    with cols[i]:
+        risk_color = "🔴" if search['risk'] == "High" else "🟡"
+        # Add a unique key to the button
+        button_key = f"chip_{i}_{search['drug']}_{search['herb']}"
+        if st.button(f"{risk_color} {search['drug']} + {search['herb']}", key=button_key):
+            # Prevent immediate double-rerun
+            if st.session_state.get('_last_chip') != button_key:
+                st.session_state['_last_chip'] = button_key
                 # Find the interaction directly
                 drug_lower = search['drug'].lower().strip()
                 herb_canonical = get_canonical_name(search['herb'])
@@ -433,7 +438,7 @@ if data:
                 st.session_state.last_result = result
                 st.session_state.search_performed = True
                 st.rerun()
-
+                
     # Check button
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
@@ -621,3 +626,4 @@ st.markdown(f"""
         <p style="margin-top: 1rem;">❤️ {texts['footer']}</p>
     </div>
 """, unsafe_allow_html=True)
+
