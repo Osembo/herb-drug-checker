@@ -27,15 +27,6 @@ if 'report_submitted' not in st.session_state:
 # Load data
 @st.cache_data
 def load_data():
-
-    try:
-        with open('interactions.json', 'r', encoding='utf-8') as f:
-            return json.load(f)['interactions']
-    except:
-        return []
-# Load data
-@st.cache_data
-def load_data():
     try:
         with open('interactions.json', 'r', encoding='utf-8') as f:
             return json.load(f)['interactions']
@@ -73,17 +64,14 @@ def normalize_data(data):
                 new_item['notes'] = item['Notes']
             normalized.append(new_item)
         else:
-            # Skip unknown entries – you can print a warning to the terminal if needed
+            # Skip unknown entries – print warning to terminal (will appear in Streamlit logs)
             print(f"Skipping unknown entry: {item}")
             continue
     return normalized
 
-# Load raw data
+# Load raw data and normalize
 raw_data = load_data()
-# Normalize it
 data = normalize_data(raw_data)
-# Load aliases (unchanged)
-aliases = load_aliases()
 
 # Load aliases
 @st.cache_data
@@ -94,7 +82,6 @@ def load_aliases():
     except:
         return {}
 
-data = load_data()
 aliases = load_aliases()
 
 # Function to find canonical herb name
@@ -147,6 +134,7 @@ st.markdown("""
     .stApp {
         font-family: 'Inter', sans-serif;
         background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+        position: relative;
     }
     
     .kenya-bar {
@@ -422,19 +410,18 @@ if data:
         herb_input = st.selectbox("", options=all_herbs, index=None, 
                                   placeholder=texts['herb_placeholder'], 
                                   label_visibility="collapsed", key="herb_select")
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
     # Quick Search Chips
     st.markdown(f"### {texts['quick_search']}")
-    st.markdown('<div class="chip-container">', unsafe_allow_html=True)
-
+    
     quick_searches = [
         {"drug": "Warfarin", "herb": "mwarobaini", "risk": "High"},
         {"drug": "Tenofovir", "herb": "muguka", "risk": "High"},
         {"drug": "Metformin", "herb": "moringa", "risk": "Moderate"},
         {"drug": "Lisinopril", "herb": "garlic", "risk": "Moderate"},
     ]
-
+    
     cols = st.columns(len(quick_searches))
     for i, search in enumerate(quick_searches):
         with cols[i]:
@@ -461,8 +448,6 @@ if data:
                 st.session_state.last_result = result
                 st.session_state.search_performed = True
                 st.rerun()
-
-    st.markdown('</div>', unsafe_allow_html=True)
 
     # Check button
     col1, col2, col3 = st.columns([1, 2, 1])
