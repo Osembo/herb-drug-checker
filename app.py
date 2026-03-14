@@ -432,6 +432,13 @@ if data:
     # Get all herbs (including aliases)
     all_herbs = sorted(list(set(aliases.keys()))) if aliases else []
 
+    # --- Add these two lines for user feedback ---
+    if not all_drugs:
+        st.warning("⚠️ No drugs found in the database. Please add some interactions first.")
+    if not all_herbs:
+        st.warning("⚠️ No herbs found in the database. Please add some herbs and aliases.")
+
+
     # Input Section - Glass Card
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
