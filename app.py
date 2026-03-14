@@ -124,10 +124,12 @@ def save_report(drug, herb, current_risk, reason, details):
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 .stApp {
     font-family: 'Inter', sans-serif;
     background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
 }
+
 .kenya-bar {
     height: 5px;
     background: linear-gradient(90deg, #000000 0%, #000000 33.33%, 
@@ -135,6 +137,7 @@ st.markdown("""
                 #00923f 66.66%, #00923f 100%);
     margin-bottom: 1rem;
 }
+
 .main-header {
     background: linear-gradient(135deg, #1a5f2a 0%, #2e7d32 100%);
     padding: 2rem 1rem;
@@ -143,17 +146,20 @@ st.markdown("""
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     margin-bottom: 2rem;
 }
+
 .main-header h1 {
     color: white;
     font-size: 2.2rem;
     font-weight: 700;
     margin: 0;
 }
+
 .main-header p {
     color: rgba(255,255,255,0.9);
     font-size: 1.1rem;
     margin: 0.5rem 0 0 0;
 }
+
 .glass-card {
     background: white;
     padding: 1.5rem;
@@ -162,6 +168,7 @@ st.markdown("""
     margin: 1rem 0;
     border: 1px solid rgba(0,0,0,0.05);
 }
+
 .risk-card {
     border-radius: 15px;
     padding: 1.5rem;
@@ -169,27 +176,33 @@ st.markdown("""
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     border-left: 8px solid;
 }
+
 .risk-high {
     background: #ffebee;
     border-left-color: #c62828;
 }
+
 .risk-moderate {
     background: #fff8e1;
     border-left-color: #ff8f00;
 }
+
 .risk-low {
     background: #e8f5e9;
     border-left-color: #2e7d32;
 }
+
 .risk-unknown {
     background: #f5f5f5;
     border-left-color: #757575;
 }
+
 .risk-card h3 {
     margin: 0 0 0.5rem 0;
     font-size: 1.5rem;
     font-weight: 700;
 }
+
 .scientific-name {
     font-style: italic;
     color: #2e7d32;
@@ -197,6 +210,7 @@ st.markdown("""
     margin-top: -0.5rem;
     margin-bottom: 1rem;
 }
+
 .stButton button {
     background: linear-gradient(135deg, #1a5f2a 0%, #2e7d32 100%) !important;
     color: white !important;
@@ -207,16 +221,19 @@ st.markdown("""
     box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3) !important;
     width: 100%;
 }
+
 .stButton button:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(46, 125, 50, 0.4) !important;
 }
+
 .chip-container {
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
     margin: 1rem 0;
 }
+
 .emergency-button {
     background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%);
     padding: 1rem;
@@ -224,6 +241,7 @@ st.markdown("""
     text-align: center;
     margin: 1rem 0;
 }
+
 .emergency-button a {
     display: inline-block;
     background: white;
@@ -235,14 +253,17 @@ st.markdown("""
     font-size: 1.3rem;
     margin: 0.5rem 0;
 }
+
 @keyframes pulse {
     0% { box-shadow: 0 0 0 0 rgba(198, 40, 40, 0.4); }
     70% { box-shadow: 0 0 0 10px rgba(198, 40, 40, 0); }
     100% { box-shadow: 0 0 0 0 rgba(198, 40, 40, 0); }
 }
+
 .pulse {
     animation: pulse 2s infinite;
 }
+
 .footer {
     text-align: center;
     padding: 1.5rem;
@@ -251,10 +272,54 @@ st.markdown("""
     border-radius: 20px 20px 0 0;
     margin-top: 2rem;
 }
+
 @media (max-width: 768px) {
     .main-header h1 {
         font-size: 1.8rem;
     }
+}
+
+/* ---------- FIX FOR VISIBLE SELECT BOXES ---------- */
+div[data-testid="stSelectbox"] > div {
+    background-color: white !important;
+    border: 2px solid #2e7d32 !important;
+    border-radius: 10px !important;
+    padding: 0.2rem !important;
+}
+
+div[data-testid="stSelectbox"] input {
+    color: #1a5f2a !important;
+    font-weight: 500 !important;
+}
+
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+    background-color: white !important;
+}
+
+div[data-testid="stSelectbox"] input::placeholder {
+    color: #6c757d !important;
+    opacity: 1;
+}
+
+div[data-testid="stSelectbox"] svg {
+    fill: #2e7d32 !important;
+}
+
+div[data-testid="stSelectbox"] span {
+    color: #1a5f2a !important;
+}
+
+div[role="listbox"] ul {
+    background-color: white !important;
+    border: 1px solid #2e7d32 !important;
+}
+
+div[role="listbox"] li {
+    color: #1a5f2a !important;
+}
+
+div[role="listbox"] li:hover {
+    background-color: #e8f5e9 !important;
 }
 </style>
 """, unsafe_allow_html=True)
