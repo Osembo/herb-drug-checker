@@ -23,7 +23,7 @@ if 'last_result' not in st.session_state:
     st.session_state.last_result = None
 if 'report_submitted' not in st.session_state:
     st.session_state.report_submitted = False
-# ========== NEW: My Meds list ==========
+# My Meds list
 if 'my_meds' not in st.session_state:
     st.session_state.my_meds = []
 
@@ -53,6 +53,7 @@ def normalize_data(data):
                     'explanation': f"{item.get('Explanation (English)', '')} {item.get('Explanation (Swahili)', '')}".strip(),
                     'recommendation': f"{item.get('Recommendation (English)', '')} {item.get('Recommendation (Swahili)', '')}".strip()
                 }
+                # Optional fields
                 if item.get('Scientific Name'):
                     new_item['scientific_name'] = item['Scientific Name']
                 if item.get('Mechanism'):
@@ -84,6 +85,18 @@ def load_aliases():
 
 aliases = load_aliases()
 
+# Load conditions
+@st.cache_data
+def load_conditions():
+    try:
+        with open('conditions.json', 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except:
+        return {}
+
+conditions_data = load_conditions()
+
+# Function to find canonical herb name
 def get_canonical_name(search_term):
     if not search_term:
         return search_term
@@ -95,6 +108,7 @@ def get_canonical_name(search_term):
             return canonical
     return search_lower
 
+# Function to save reports
 def save_report(drug, herb, current_risk, reason, details):
     report = {
         "timestamp": str(datetime.datetime.now()),
@@ -117,7 +131,7 @@ def save_report(drug, herb, current_risk, reason, details):
     st.session_state.report_submitted = True
 
 # ------------------------------------------------------------
-# UI CSS (unchanged)
+# UI CSS
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -253,7 +267,7 @@ st.markdown("""
         font-size: 1.8rem;
     }
 }
-/* select box visibility */
+/* Make select boxes clearly visible */
 div[data-testid="stSelectbox"] > div {
     background-color: white !important;
     border: 2px solid #2e7d32 !important;
@@ -296,7 +310,7 @@ col1, col2 = st.columns([3, 1])
 with col2:
     language = st.selectbox("🌐", ["English", "Kiswahili"])
 
-# English texts (add new entries for My Meds)
+# English texts
 if language == "English":
     texts = {
         "title": "🌿 Herb-Drug Interaction Checker",
@@ -337,14 +351,22 @@ if language == "English":
         "about": "### About This Tool",
         "last_updated": "Last Updated: March 2026",
         "footer": "Made with ❤️ for Kenya",
-        # ===== NEW TEXTS =====
+        # My Meds
         "my_meds_title": "💊 My Medications",
         "my_meds_add_label": "Add a drug to your list",
         "my_meds_add_placeholder": "Select a drug...",
         "my_meds_current": "Your current medications:",
         "my_meds_remove": "Remove",
         "my_meds_empty": "No medications saved yet. Add some above.",
-        "my_meds_check_header": "🔍 Checking against your medications:"
+        "my_meds_check_header": "🔍 Checking against your medications:",
+        # Condition search
+        "condition_title": "🔍 Search by Condition",
+        "condition_placeholder": "Select a condition...",
+        "condition_drugs_header": "Common medications for this condition:",
+        "condition_herbs_header": "Herbs to be cautious with:",
+        "condition_check_button": "Check interactions with my medications",
+        "condition_no_drugs": "No specific drug list for this condition.",
+        "condition_no_herbs": "No specific herb warnings for this condition.",
     }
 else:
     texts = {
@@ -386,14 +408,22 @@ else:
         "about": "### Kuhusu Zana Hii",
         "last_updated": "Ilisasishwa: Machi 2026",
         "footer": "Imetengenezwa kwa ❤️ kwa Kenya",
-        # ===== NEW TEXTS =====
+        # My Meds
         "my_meds_title": "💊 Dawa Zangu",
         "my_meds_add_label": "Ongeza dawa kwenye orodha yako",
         "my_meds_add_placeholder": "Chagua dawa...",
         "my_meds_current": "Dawa zako za sasa:",
         "my_meds_remove": "Ondoa",
         "my_meds_empty": "Hakuna dawa zilizohifadhiwa bado. Ongeza hapo juu.",
-        "my_meds_check_header": "🔍 Kuangalia dhidi ya dawa zako:"
+        "my_meds_check_header": "🔍 Kuangalia dhidi ya dawa zako:",
+        # Condition search
+        "condition_title": "🔍 Tafuta kwa Hali ya Afya",
+        "condition_placeholder": "Chagua hali...",
+        "condition_drugs_header": "Dawa za kawaida kwa hali hii:",
+        "condition_herbs_header": "Mimea ya kuwa mwangalifu nayo:",
+        "condition_check_button": "Angalia mwingiliano na dawa zangu",
+        "condition_no_drugs": "Hakuna orodha maalum ya dawa kwa hali hii.",
+        "condition_no_herbs": "Hakuna tahadhari maalum za mimea kwa hali hii.",
     }
 
 # Kenyan Flag Bar
@@ -412,9 +442,9 @@ if data:
     all_drugs = sorted(list(set([item['drug'].title() for item in data if item['drug'] != "any"])))
     all_herbs = sorted(list(set(aliases.keys()))) if aliases else []
 
-    # ==================== NEW: My Meds Section ====================
+    # --------------------------------------------------------
+    # 1. My Meds Section
     with st.expander(texts['my_meds_title']):
-        # Add drug to list
         col1, col2 = st.columns([3, 1])
         with col1:
             new_med = st.selectbox(
@@ -428,8 +458,6 @@ if data:
                 if new_med and new_med not in st.session_state.my_meds:
                     st.session_state.my_meds.append(new_med)
                     st.rerun()
-
-        # Show current list
         if st.session_state.my_meds:
             st.markdown(f"**{texts['my_meds_current']}**")
             for med in st.session_state.my_meds:
@@ -442,9 +470,42 @@ if data:
                         st.rerun()
         else:
             st.info(texts['my_meds_empty'])
-    # ==============================================================
 
-    # Quick Search Chips (moved to top)
+    # --------------------------------------------------------
+    # 2. Search by Condition Section
+    with st.expander(texts['condition_title']):
+        condition_options = [""] + sorted(conditions_data.keys())
+        selected_condition_key = st.selectbox(
+            "",
+            options=condition_options,
+            format_func=lambda x: conditions_data[x]['display_name'] if x else texts['condition_placeholder'],
+            key="condition_select"
+        )
+        if selected_condition_key:
+            condition = conditions_data[selected_condition_key]
+            st.markdown(f"**{texts['condition_drugs_header']}**")
+            if condition.get('drugs'):
+                for drug in condition['drugs']:
+                    if st.button(f"💊 {drug.title()}", key=f"cond_drug_{drug}"):
+                        st.session_state.drug_select = drug.title()
+                        st.rerun()
+            else:
+                st.info(texts['condition_no_drugs'])
+            st.markdown(f"**{texts['condition_herbs_header']}**")
+            if condition.get('herb_warnings'):
+                for hw in condition['herb_warnings']:
+                    risk_color = "🔴" if hw['risk'] == "High" else "🟡" if hw['risk'] == "Moderate" else "🟢"
+                    st.markdown(f"""
+                    <div style="background: #f8f9fa; padding: 0.8rem; border-radius: 8px; margin: 0.5rem 0; border-left: 5px solid {'#c62828' if hw['risk']=='High' else '#ff8f00' if hw['risk']=='Moderate' else '#2e7d32'};">
+                        <b>{risk_color} {hw['herb'].title()}</b> – {hw['explanation']}<br>
+                        <small><i>Recommendation:</i> {hw['recommendation']}</small>
+                    </div>
+                    """, unsafe_allow_html=True)
+            else:
+                st.info(texts['condition_no_herbs'])
+
+    # --------------------------------------------------------
+    # 3. Quick Search Chips
     st.markdown(f"### {texts['quick_search']}")
     quick_searches = [
         {"drug": "Warfarin", "herb": "mwarobaini", "risk": "High"},
@@ -478,7 +539,8 @@ if data:
                     st.session_state.search_performed = True
                     st.rerun()
 
-    # Input Section
+    # --------------------------------------------------------
+    # 4. Input Section
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
@@ -493,7 +555,8 @@ if data:
                                   label_visibility="collapsed", key="herb_select")
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Check button
+    # --------------------------------------------------------
+    # 5. Check Button
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         check_button = st.button(texts['check_button'], type="primary", use_container_width=True)
@@ -528,7 +591,6 @@ if data:
         herb_display = st.session_state.last_herb
         herb_canonical = get_canonical_name(herb_display)
 
-        # Show result for the specific drug if available
         if result:
             risk = result['risk']
             if risk == "High":
@@ -582,17 +644,14 @@ if data:
             if st.button(texts['request_button']):
                 st.success(f"✅ Thank you! We'll research {drug_display} + {herb_display}")
 
-        # ========== NEW: Check against My Meds list ==========
+        # Check against My Meds list
         if st.session_state.my_meds:
             st.markdown(f"### {texts['my_meds_check_header']}")
-            # For each drug in the list, check interaction with the same herb
             found_any = False
             for med in st.session_state.my_meds:
                 med_lower = med.lower().strip()
-                # Skip if it's the same as the drug we just checked (to avoid duplication)
                 if med_lower == drug_display.lower().strip():
                     continue
-                # Find interaction
                 interaction = None
                 for item in data:
                     if item['drug'] == med_lower and item['herb'] == herb_canonical:
@@ -625,9 +684,9 @@ if data:
                     """, unsafe_allow_html=True)
             if not found_any:
                 st.info(f"No known interactions found between {herb_display} and your other medications.")
-        # =====================================================
 
-    # Quick reference and search (unchanged)
+    # --------------------------------------------------------
+    # 6. Quick Reference & Search
     with st.expander(texts['view_common']):
         df_data = []
         for item in data[:10]:
@@ -658,6 +717,7 @@ if data:
         else:
             st.info(texts['no_matches'])
 
+# ------------------------------------------------------------
 # Sidebar (unchanged)
 with st.sidebar:
     st.image("https://img.icons8.com/color/96/000000/kenya.png", width=60)
