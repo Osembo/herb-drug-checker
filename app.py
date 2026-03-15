@@ -438,7 +438,44 @@ if data:
     if not all_herbs:
         st.warning("⚠️ No herbs found in the database. Please add some herbs and aliases.")
 
+# Quick Search Chips
+    st.markdown(f"### {texts['quick_search']}")
+   
+    quick_searches = [
+        {"drug": "Warfarin", "herb": "mwarobaini", "risk": "High"},
+        {"drug": "Tenofovir", "herb": "muguka", "risk": "High"},
+        {"drug": "Metformin", "herb": "moringa", "risk": "Moderate"},
+        {"drug": "Lisinopril", "herb": "garlic", "risk": "Moderate"},
+    ]
 
+    cols = st.columns(len(quick_searches))
+    for i, search in enumerate(quick_searches):
+        with cols[i]:
+            risk_color = "🔴" if search['risk'] == "High" else "🟡"
+            button_key = f"chip_{i}_{search['drug']}_{search['herb']}"
+            if st.button(f"{risk_color} {search['drug']} + {search['herb']}", key=button_key):
+                # Prevent double-rerun
+                if st.session_state.get('_last_chip') != button_key:
+                    st.session_state['_last_chip'] = button_key
+                    # Find the interaction directly
+                    drug_lower = search['drug'].lower().strip()
+                    herb_canonical = get_canonical_name(search['herb'])
+                    result = None
+                    for item in data:
+                        if item['drug'] == drug_lower and item['herb'] == herb_canonical:
+                            result = item
+                            break
+                    if not result:
+                        for item in data:
+                            if item['drug'] == "any" and item['herb'] == herb_canonical:
+                                result = item
+                                break
+                    st.session_state.last_drug = search['drug']
+                    st.session_state.last_herb = search['herb']
+                    st.session_state.last_result = result
+                    st.session_state.search_performed = True
+                    st.rerun()
+   
     # Input Section - Glass Card
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
@@ -584,43 +621,7 @@ if data:
                 st.markdown(f"{risk_color} **{r['drug'].title()}** + **{r['herb'].title()}**")
         else:
             st.info(texts['no_matches'])
-# Quick Search Chips
-    st.markdown(f"### {texts['quick_search']}")
-   
-    quick_searches = [
-        {"drug": "Warfarin", "herb": "mwarobaini", "risk": "High"},
-        {"drug": "Tenofovir", "herb": "muguka", "risk": "High"},
-        {"drug": "Metformin", "herb": "moringa", "risk": "Moderate"},
-        {"drug": "Lisinopril", "herb": "garlic", "risk": "Moderate"},
-    ]
 
-    cols = st.columns(len(quick_searches))
-    for i, search in enumerate(quick_searches):
-        with cols[i]:
-            risk_color = "🔴" if search['risk'] == "High" else "🟡"
-            button_key = f"chip_{i}_{search['drug']}_{search['herb']}"
-            if st.button(f"{risk_color} {search['drug']} + {search['herb']}", key=button_key):
-                # Prevent double-rerun
-                if st.session_state.get('_last_chip') != button_key:
-                    st.session_state['_last_chip'] = button_key
-                    # Find the interaction directly
-                    drug_lower = search['drug'].lower().strip()
-                    herb_canonical = get_canonical_name(search['herb'])
-                    result = None
-                    for item in data:
-                        if item['drug'] == drug_lower and item['herb'] == herb_canonical:
-                            result = item
-                            break
-                    if not result:
-                        for item in data:
-                            if item['drug'] == "any" and item['herb'] == herb_canonical:
-                                result = item
-                                break
-                    st.session_state.last_drug = search['drug']
-                    st.session_state.last_herb = search['herb']
-                    st.session_state.last_result = result
-                    st.session_state.search_performed = True
-                    st.rerun()
 
 # Sidebar
 with st.sidebar:
