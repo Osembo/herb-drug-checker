@@ -1,0 +1,116 @@
+{
+  "diabetes": {
+    "display_name": "Diabetes / Kisukari",
+    "drugs": ["metformin", "glibenclamide", "insulin"],
+    "herb_warnings": [
+      {
+        "herb": "moringa",
+        "risk": "Moderate",
+        "explanation": "Moringa may lower blood sugar and add to diabetes medication effects.",
+        "recommendation": "Monitor blood sugar closely if using moringa."
+      },
+      {
+        "herb": "bitter melon",
+        "risk": "Moderate",
+        "explanation": "Bitter melon can significantly lower blood sugar.",
+        "recommendation": "Avoid or monitor glucose carefully."
+      },
+      {
+        "herb": "garlic",
+        "risk": "Low",
+        "explanation": "Garlic may have mild blood sugar lowering effects.",
+        "recommendation": "Safe in culinary amounts; monitor if using supplements."
+      }
+    ]
+  },
+  "hypertension": {
+    "display_name": "High Blood Pressure / Shinikizo la Damu",
+    "drugs": ["lisinopril", "amlodipine", "nifedipine", "losartan"],
+    "herb_warnings": [
+      {
+        "herb": "garlic",
+        "risk": "Moderate",
+        "explanation": "Garlic can lower blood pressure and may add to medication effects.",
+        "recommendation": "Monitor blood pressure; watch for dizziness."
+      },
+      {
+        "herb": "hibiscus",
+        "risk": "Moderate",
+        "explanation": "Hibiscus tea lowers blood pressure.",
+        "recommendation": "Avoid drinking large amounts if on BP medication."
+      },
+      {
+        "herb": "licorice",
+        "risk": "High",
+        "explanation": "Licorice can raise blood pressure and counteract medications.",
+        "recommendation": "Avoid licorice completely."
+      }
+    ]
+  },
+  "malaria": {
+    "display_name": "Malaria",
+    "drugs": ["artemether", "lumefantrine", "quinine"],
+    "herb_warnings": [
+      {
+        "herb": "mwarobaini",
+        "risk": "Moderate",
+        "explanation": "Neem may affect liver enzymes and alter malaria drug levels.",
+        "recommendation": "Consult doctor before using neem during malaria treatment."
+      },
+      {
+        "herb": "muguka",
+        "risk": "High",
+        "explanation": "Khat can interact with artemether/lumefantrine and may reduce efficacy.",
+        "recommendation": "Avoid khat completely during malaria treatment."
+      }
+    ]
+  },
+  "hiv": {
+    "display_name": "HIV / Ukimwi",
+    "drugs": ["tenofovir", "dolutegravir", "efavirenz", "nevirapine"],
+    "herb_warnings": [
+      {
+        "herb": "muguka",
+        "risk": "High",
+        "explanation": "Khat can reduce the effectiveness of ARVs and cause treatment failure.",
+        "recommendation": "AVOID khat completely."
+      },
+      {
+        "herb": "mwarobaini",
+        "risk": "Moderate",
+        "explanation": "Neem may affect liver enzymes and alter ARV levels.",
+        "recommendation": "Consult your doctor before using neem."
+      },
+      {
+        "herb": "st. john's wort",
+        "risk": "High",
+        "explanation": "St. John's Wort reduces ARV levels and risks treatment failure.",
+        "recommendation": "Do not use with HIV medications."
+      }
+    ]
+  },
+  "pregnancy": {
+    "display_name": "Pregnancy / Ujauzito",
+    "drugs": [],
+    "herb_warnings": [
+      {
+        "herb": "aloe vera",
+        "risk": "High",
+        "explanation": "Aloe latex can stimulate uterine contractions and may cause miscarriage.",
+        "recommendation": "Avoid during pregnancy."
+      },
+      {
+        "herb": "mwarobaini",
+        "risk": "High",
+        "explanation": "Neem has been associated with miscarriage.",
+        "recommendation": "Do not use during pregnancy."
+      },
+      {
+        "herb": "ginger",
+        "risk": "Low",
+        "explanation": "Culinary amounts of ginger are safe; avoid high-dose supplements.",
+        "recommendation": "Safe in food amounts."
+      }
+    ]
+  }
+}
