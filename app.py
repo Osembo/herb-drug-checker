@@ -90,8 +90,14 @@ aliases = load_aliases()
 def load_conditions():
     try:
         with open('conditions.json', 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except:
+            data = json.load(f)
+            print(f"✅ Loaded {len(data)} conditions")  # appears in Streamlit Cloud logs
+            return data
+    except FileNotFoundError:
+        print("❌ conditions.json not found in the repository root!")
+        return {}
+    except json.JSONDecodeError as e:
+        print(f"❌ JSON error in conditions.json: {e}")
         return {}
 
 conditions_data = load_conditions()
