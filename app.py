@@ -403,6 +403,36 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] {
         font-size: 0.9rem !important;
         padding: 0.4rem 0.8rem !important;
     }
+}/* Force all text inside select boxes to be black */
+div[data-testid="stSelectbox"] input,
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div,
+div[data-testid="stSelectbox"] span,
+div[data-testid="stSelectbox"] [data-baseweb="select"] span {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important; /* for Safari */
+}
+
+/* Placeholder text – dark gray, not light */
+div[data-testid="stSelectbox"] input::placeholder,
+div[data-testid="stSelectbox"] [data-baseweb="select"]::placeholder {
+    color: #4a4a4a !important;
+    opacity: 1 !important;
+}
+
+/* Ensure background is white */
+div[data-testid="stSelectbox"] > div,
+div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
+    background-color: white !important;
+}
+
+/* For the "Search all interactions" text input */
+.stTextInput input {
+    color: #000000 !important;
+    background-color: white !important;
+}
+.stTextInput input::placeholder {
+    color: #4a4a4a !important;
+    opacity: 1 !important;
 }
 </style>
 """, unsafe_allow_html=True)
