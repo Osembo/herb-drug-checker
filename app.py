@@ -433,6 +433,30 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
 .stTextInput input::placeholder {
     color: #4a4a4a !important;
     opacity: 1 !important;
+}/* Sidebar – light background, dark text for readability */
+[data-testid="stSidebar"] {
+    background-color: #ffffff !important;
+}
+
+[data-testid="stSidebar"] .stMarkdown,
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] span,
+[data-testid="stSidebar"] div,
+[data-testid="stSidebar"] label {
+    color: #1a2e3a !important;
+}
+
+/* Emergency button inside sidebar – already styled, but ensure text is white */
+[data-testid="stSidebar"] .emergency-button p,
+[data-testid="stSidebar"] .emergency-button a {
+    color: white !important;
+}
+
+/* For mobile, maybe add some padding */
+@media (max-width: 768px) {
+    [data-testid="stSidebar"] {
+        padding: 1rem !important;
+    }
 }
 </style>
 """, unsafe_allow_html=True)
