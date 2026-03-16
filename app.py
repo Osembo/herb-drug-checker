@@ -6,7 +6,7 @@ import os
 
 # Page config
 st.set_page_config(
-    page_title="Herb-Drug Checker Kenya",
+    page_title="TCIM-Biomedicine Checker Kenya",
     page_icon="🌿",
     layout="centered",
     initial_sidebar_state="expanded"
@@ -53,7 +53,6 @@ def normalize_data(data):
                     'explanation': f"{item.get('Explanation (English)', '')} {item.get('Explanation (Swahili)', '')}".strip(),
                     'recommendation': f"{item.get('Recommendation (English)', '')} {item.get('Recommendation (Swahili)', '')}".strip()
                 }
-                # Optional fields
                 if item.get('Scientific Name'):
                     new_item['scientific_name'] = item['Scientific Name']
                 if item.get('Mechanism'):
@@ -90,17 +89,22 @@ aliases = load_aliases()
 def load_conditions():
     try:
         with open('conditions.json', 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            print(f"✅ Loaded {len(data)} conditions")  # appears in Streamlit Cloud logs
-            return data
-    except FileNotFoundError:
-        print("❌ conditions.json not found in the repository root!")
-        return {}
-    except json.JSONDecodeError as e:
-        print(f"❌ JSON error in conditions.json: {e}")
+            return json.load(f)
+    except:
         return {}
 
 conditions_data = load_conditions()
+
+# Load herb monographs
+@st.cache_data
+def load_monographs():
+    try:
+        with open('herb_monographs.json', 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except:
+        return {}
+
+monographs = load_monographs()
 
 # Function to find canonical herb name
 def get_canonical_name(search_term):
@@ -141,12 +145,10 @@ def save_report(drug, herb, current_risk, reason, details):
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 .stApp {
     font-family: 'Inter', sans-serif;
     background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
 }
-
 .kenya-bar {
     height: 5px;
     background: linear-gradient(90deg, #000000 0%, #000000 33.33%, 
@@ -154,7 +156,6 @@ st.markdown("""
                 #00923f 66.66%, #00923f 100%);
     margin-bottom: 1rem;
 }
-
 .main-header {
     background: linear-gradient(135deg, #1a5f2a 0%, #2e7d32 100%);
     padding: 2rem 1rem;
@@ -163,21 +164,18 @@ st.markdown("""
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     margin-bottom: 2rem;
 }
-
 .main-header h1 {
     color: white !important;
     font-size: 2.2rem;
     font-weight: 700;
     margin: 0;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.2); /* improves contrast on bright screens */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
 }
-
 .main-header p {
     color: rgba(255,255,255,0.95) !important;
     font-size: 1.1rem;
     margin: 0.5rem 0 0 0;
 }
-
 .glass-card {
     background: white;
     padding: 1.5rem;
@@ -186,8 +184,6 @@ st.markdown("""
     margin: 1rem 0;
     border: 1px solid rgba(0,0,0,0.05);
 }
-
-/* Risk cards – ensure text is dark on light backgrounds */
 .risk-card {
     border-radius: 15px;
     padding: 1.5rem;
@@ -195,7 +191,6 @@ st.markdown("""
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     border-left: 8px solid;
 }
-
 .risk-high {
     background: #ffebee;
     border-left-color: #c62828;
@@ -212,15 +207,12 @@ st.markdown("""
     background: #f5f5f5;
     border-left-color: #757575;
 }
-
 .risk-card h3, .risk-card h4, .risk-card p {
-    color: #1e2a3a !important; /* dark blue-gray – high contrast */
+    color: #1e2a3a !important;
 }
-
 .risk-card strong {
     color: #0a1a2a !important;
 }
-
 .scientific-name {
     font-style: italic;
     color: #2e7d32 !important;
@@ -228,8 +220,6 @@ st.markdown("""
     margin-top: -0.5rem;
     margin-bottom: 1rem;
 }
-
-/* Buttons */
 .stButton button {
     background: linear-gradient(135deg, #1a5f2a 0%, #2e7d32 100%) !important;
     color: white !important;
@@ -240,19 +230,16 @@ st.markdown("""
     box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3) !important;
     width: 100%;
 }
-
 .stButton button:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(46, 125, 50, 0.4) !important;
 }
-
 .chip-container {
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
     margin: 1rem 0;
 }
-
 .emergency-button {
     background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%);
     padding: 1rem;
@@ -260,7 +247,6 @@ st.markdown("""
     text-align: center;
     margin: 1rem 0;
 }
-
 .emergency-button a {
     display: inline-block;
     background: white;
@@ -272,17 +258,14 @@ st.markdown("""
     font-size: 1.3rem;
     margin: 0.5rem 0;
 }
-
 @keyframes pulse {
     0% { box-shadow: 0 0 0 0 rgba(198, 40, 40, 0.4); }
     70% { box-shadow: 0 0 0 10px rgba(198, 40, 40, 0); }
     100% { box-shadow: 0 0 0 0 rgba(198, 40, 40, 0); }
 }
-
 .pulse {
     animation: pulse 2s infinite;
 }
-
 .footer {
     text-align: center;
     padding: 1.5rem;
@@ -291,93 +274,81 @@ st.markdown("""
     border-radius: 20px 20px 0 0;
     margin-top: 2rem;
 }
-
 .footer p {
     color: white !important;
 }
-
-/* Make select boxes clearly visible */
 div[data-testid="stSelectbox"] > div {
     background-color: white !important;
     border: 2px solid #2e7d32 !important;
     border-radius: 10px !important;
     padding: 0.2rem !important;
 }
-
 div[data-testid="stSelectbox"] input {
-    color: #1a2e3a !important; /* dark, readable */
+    color: #000000 !important;
     font-weight: 500 !important;
 }
-
 div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
     background-color: white !important;
 }
-
 div[data-testid="stSelectbox"] input::placeholder {
-    color: #4a5a6a !important; /* darker placeholder – much more visible */
-    opacity: 1;
-    font-weight: 400;
+    color: #4a4a4a !important;
+    opacity: 1 !important;
 }
-
 div[data-testid="stSelectbox"] svg {
     fill: #2e7d32 !important;
 }
-
 div[data-testid="stSelectbox"] span {
-    color: #1a2e3a !important;
+    color: #000000 !important;
 }
-
-/* Dropdown menu options */
 div[role="listbox"] ul {
     background-color: white !important;
     border: 1px solid #2e7d32 !important;
 }
-
 div[role="listbox"] li {
-    color: #1a2e3a !important;
+    color: #000000 !important;
     font-size: 1rem !important;
 }
-
 div[role="listbox"] li:hover {
     background-color: #e8f5e9 !important;
 }
-
-/* Ensure all text inputs and text areas have dark text */
-.stTextInput input, .stTextArea textarea {
-    color: #1a2e3a !important;
+.stTextInput input {
+    color: #000000 !important;
     background-color: white !important;
 }
-
 .stTextInput input::placeholder {
-    color: #4a5a6a !important;
+    color: #4a4a4a !important;
+    opacity: 1 !important;
 }
-
-/* Language selector – ensure text is visible */
 div[data-testid="stSelectbox"] div[data-baseweb="select"] {
-    color: #1a2e3a !important;
+    color: #000000 !important;
 }
-
-/* Expanders – ensure content is readable */
 .streamlit-expanderContent {
     color: #1a2e3a !important;
 }
-
 .streamlit-expanderHeader {
     color: #1a5f2a !important;
     font-weight: 600 !important;
 }
-
-/* Sidebar text */
 .css-1d391kg, .css-1d391kg p, .css-1d391kg span {
     color: #1a2e3a !important;
 }
-
-/* All general text */
 .stMarkdown, p, li, h1, h2, h3, h4, h5, h6 {
     color: #1a2e3a;
 }
-
-/* Mobile optimizations */
+[data-testid="stSidebar"] {
+    background-color: #ffffff !important;
+}
+[data-testid="stSidebar"] .stMarkdown,
+[data-testid="stSidebar"] p,
+[data-testid="stSidebar"] span,
+[data-testid="stSidebar"] div,
+[data-testid="stSidebar"] label {
+    color: #1a2e3a !important;
+}
+[data-testid="stSidebar"] .emergency-button p,
+[data-testid="stSidebar"] .emergency-button a {
+    color: white !important;
+}
 @media (max-width: 768px) {
     .main-header h1 {
         font-size: 1.8rem;
@@ -395,7 +366,6 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] {
         font-size: 1rem !important;
         padding: 0.5rem 1rem !important;
     }
-    /* Increase tap target size for better usability */
     div[data-testid="stSelectbox"] > div {
         min-height: 3rem;
     }
@@ -403,57 +373,6 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] {
         font-size: 0.9rem !important;
         padding: 0.4rem 0.8rem !important;
     }
-}/* Force all text inside select boxes to be black */
-div[data-testid="stSelectbox"] input,
-div[data-testid="stSelectbox"] div[data-baseweb="select"] > div,
-div[data-testid="stSelectbox"] span,
-div[data-testid="stSelectbox"] [data-baseweb="select"] span {
-    color: #000000 !important;
-    -webkit-text-fill-color: #000000 !important; /* for Safari */
-}
-
-/* Placeholder text – dark gray, not light */
-div[data-testid="stSelectbox"] input::placeholder,
-div[data-testid="stSelectbox"] [data-baseweb="select"]::placeholder {
-    color: #4a4a4a !important;
-    opacity: 1 !important;
-}
-
-/* Ensure background is white */
-div[data-testid="stSelectbox"] > div,
-div[data-testid="stSelectbox"] div[data-baseweb="select"] > div {
-    background-color: white !important;
-}
-
-/* For the "Search all interactions" text input */
-.stTextInput input {
-    color: #000000 !important;
-    background-color: white !important;
-}
-.stTextInput input::placeholder {
-    color: #4a4a4a !important;
-    opacity: 1 !important;
-}/* Sidebar – light background, dark text for readability */
-[data-testid="stSidebar"] {
-    background-color: #ffffff !important;
-}
-
-[data-testid="stSidebar"] .stMarkdown,
-[data-testid="stSidebar"] p,
-[data-testid="stSidebar"] span,
-[data-testid="stSidebar"] div,
-[data-testid="stSidebar"] label {
-    color: #1a2e3a !important;
-}
-
-/* Emergency button inside sidebar – already styled, but ensure text is white */
-[data-testid="stSidebar"] .emergency-button p,
-[data-testid="stSidebar"] .emergency-button a {
-    color: white !important;
-}
-
-/* For mobile, maybe add some padding */
-@media (max-width: 768px) {
     [data-testid="stSidebar"] {
         padding: 1rem !important;
     }
@@ -470,11 +389,11 @@ with col2:
 # English texts
 if language == "English":
     texts = {
-        "title": "🌿 Herb-Drug Interaction Checker",
-        "subtitle": "Know before you combine | Created in Kenya 🇰🇪",
+        "title": "🌿 TCIM-Biomedicine Interaction Checker",
+        "subtitle": "Traditional, Complementary & Integrative Medicine | Created in Kenya 🇰🇪",
         "drug_label": "💊 Medication",
         "drug_placeholder": "e.g., warfarin, metformin, tenofovir",
-        "herb_label": "🌿 Herb",
+        "herb_label": "🌿 Herb / TCIM",
         "herb_placeholder": "e.g., moringa, mwarobaini, neem",
         "check_button": "🔍 Check Interaction",
         "result_title": "📋 Interaction Result",
@@ -524,14 +443,25 @@ if language == "English":
         "condition_check_button": "Check interactions with my medications",
         "condition_no_drugs": "No specific drug list for this condition.",
         "condition_no_herbs": "No specific herb warnings for this condition.",
+        # Herb monograph
+        "monograph_title": "🌿 TCIM Monograph",
+        "monograph_select_placeholder": "Select an herb...",
+        "monograph_scientific_name": "Scientific name",
+        "monograph_active_compounds": "Active compounds",
+        "monograph_common_uses": "Common uses",
+        "monograph_potential_interactions": "Potential drug interactions",
+        "monograph_contraindications": "Contraindications",
+        "monograph_side_effects": "Possible side effects",
+        "monograph_traditional_preparation": "Traditional preparation",
+        "monograph_not_found": "No monograph available for this herb yet.",
     }
 else:
     texts = {
-        "title": "🌿 Angalia Mwingiliano wa Dawa na Mitishamba",
-        "subtitle": "Jua kabla ya kuchanganya | Imeundwa Kenya 🇰🇪",
+        "title": "🌿 Angalia Mwingiliano wa TCIM na Dawa za Kisasa",
+        "subtitle": "Tiba Asili, Mbadala na Jumuishi | Imeundwa Kenya 🇰🇪",
         "drug_label": "💊 Dawa",
         "drug_placeholder": "mfano: warfarin, metformin",
-        "herb_label": "🌿 Mmea",
+        "herb_label": "🌿 Mmea / TCIM",
         "herb_placeholder": "mfano: moringa, mwarobaini, neem",
         "check_button": "🔍 Angalia",
         "result_title": "📋 Matokeo",
@@ -581,6 +511,17 @@ else:
         "condition_check_button": "Angalia mwingiliano na dawa zangu",
         "condition_no_drugs": "Hakuna orodha maalum ya dawa kwa hali hii.",
         "condition_no_herbs": "Hakuna tahadhari maalum za mimea kwa hali hii.",
+        # Herb monograph
+        "monograph_title": "🌿 Maelezo ya TCIM",
+        "monograph_select_placeholder": "Chagua mmea...",
+        "monograph_scientific_name": "Jina la kisayansi",
+        "monograph_active_compounds": "Vijenzi amilifu",
+        "monograph_common_uses": "Matumizi ya kawaida",
+        "monograph_potential_interactions": "Mwingiliano unaowezekana na dawa",
+        "monograph_contraindications": "Vikwazo",
+        "monograph_side_effects": "Madhara yanayowezekana",
+        "monograph_traditional_preparation": "Maandalizi ya kienyeji",
+        "monograph_not_found": "Hakuna maelezo ya mmea huu bado.",
     }
 
 # Kenyan Flag Bar
@@ -631,38 +572,97 @@ if data:
     # --------------------------------------------------------
     # 2. Search by Condition Section
     with st.expander(texts['condition_title']):
-        condition_options = [""] + sorted(conditions_data.keys())
-        selected_condition_key = st.selectbox(
-            "",
-            options=condition_options,
-            format_func=lambda x: conditions_data[x]['display_name'] if x else texts['condition_placeholder'],
-            key="condition_select"
-        )
-        if selected_condition_key:
-            condition = conditions_data[selected_condition_key]
-            st.markdown(f"**{texts['condition_drugs_header']}**")
-            if condition.get('drugs'):
-                for drug in condition['drugs']:
-                    if st.button(f"💊 {drug.title()}", key=f"cond_drug_{drug}"):
-                        st.session_state.drug_select = drug.title()
-                        st.rerun()
-            else:
-                st.info(texts['condition_no_drugs'])
-            st.markdown(f"**{texts['condition_herbs_header']}**")
-            if condition.get('herb_warnings'):
-                for hw in condition['herb_warnings']:
-                    risk_color = "🔴" if hw['risk'] == "High" else "🟡" if hw['risk'] == "Moderate" else "🟢"
-                    st.markdown(f"""
-                    <div style="background: #f8f9fa; padding: 0.8rem; border-radius: 8px; margin: 0.5rem 0; border-left: 5px solid {'#c62828' if hw['risk']=='High' else '#ff8f00' if hw['risk']=='Moderate' else '#2e7d32'};">
-                        <b>{risk_color} {hw['herb'].title()}</b> – {hw['explanation']}<br>
-                        <small><i>Recommendation:</i> {hw['recommendation']}</small>
-                    </div>
-                    """, unsafe_allow_html=True)
-            else:
-                st.info(texts['condition_no_herbs'])
+        if not conditions_data:
+            st.warning("Condition data not loaded.")
+        else:
+            condition_options = [""] + sorted(conditions_data.keys())
+            selected_condition_key = st.selectbox(
+                "",
+                options=condition_options,
+                format_func=lambda x: conditions_data[x]['display_name'] if x else texts['condition_placeholder'],
+                key="condition_select"
+            )
+            if selected_condition_key:
+                condition = conditions_data[selected_condition_key]
+                st.markdown(f"**{texts['condition_drugs_header']}**")
+                if condition.get('drugs'):
+                    for drug in condition['drugs']:
+                        if st.button(f"💊 {drug.title()}", key=f"cond_drug_{drug}"):
+                            st.session_state.drug_select = drug.title()
+                            st.rerun()
+                else:
+                    st.info(texts['condition_no_drugs'])
+                st.markdown(f"**{texts['condition_herbs_header']}**")
+                if condition.get('herb_warnings'):
+                    for hw in condition['herb_warnings']:
+                        risk_color = "🔴" if hw['risk'] == "High" else "🟡" if hw['risk'] == "Moderate" else "🟢"
+                        st.markdown(f"""
+                        <div style="background: #f8f9fa; padding: 0.8rem; border-radius: 8px; margin: 0.5rem 0; border-left: 5px solid {'#c62828' if hw['risk']=='High' else '#ff8f00' if hw['risk']=='Moderate' else '#2e7d32'};">
+                            <b>{risk_color} {hw['herb'].title()}</b> – {hw['explanation']}<br>
+                            <small><i>Recommendation:</i> {hw['recommendation']}</small>
+                        </div>
+                        """, unsafe_allow_html=True)
+                else:
+                    st.info(texts['condition_no_herbs'])
 
     # --------------------------------------------------------
-    # 3. Quick Search Chips
+    # 3. Herb Monograph Section
+    with st.expander(texts['monograph_title']):
+        if not monographs:
+            st.warning("Monograph data not loaded.")
+        else:
+            herb_options = [""] + sorted(monographs.keys())
+            selected_herb = st.selectbox(
+                "",
+                options=herb_options,
+                format_func=lambda x: x.title() if x else texts['monograph_select_placeholder'],
+                key="monograph_select"
+            )
+            if selected_herb:
+                herb_data = monographs[selected_herb]
+                st.markdown(f"### {selected_herb.title()}")
+
+                if herb_data.get('scientific_name'):
+                    st.markdown(f"*{herb_data['scientific_name']}*")
+
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    if herb_data.get('active_compounds'):
+                        st.markdown(f"**{texts['monograph_active_compounds']}**")
+                        for compound in herb_data['active_compounds']:
+                            st.markdown(f"- {compound}")
+
+                    if herb_data.get('common_uses'):
+                        st.markdown(f"**{texts['monograph_common_uses']}**")
+                        for use in herb_data['common_uses']:
+                            st.markdown(f"- {use}")
+
+                    if herb_data.get('potential_interactions'):
+                        st.markdown(f"**{texts['monograph_potential_interactions']}**")
+                        for drug in herb_data['potential_interactions']:
+                            if st.button(f"🔍 {drug.title()}", key=f"mono_drug_{selected_herb}_{drug}"):
+                                st.session_state.drug_select = drug.title()
+                                st.session_state.herb_select = selected_herb.title()
+                                st.rerun()
+
+                with col2:
+                    if herb_data.get('contraindications'):
+                        st.markdown(f"**{texts['monograph_contraindications']}**")
+                        for contra in herb_data['contraindications']:
+                            st.markdown(f"- {contra}")
+
+                    if herb_data.get('side_effects'):
+                        st.markdown(f"**{texts['monograph_side_effects']}**")
+                        for effect in herb_data['side_effects']:
+                            st.markdown(f"- {effect}")
+
+                    if herb_data.get('traditional_preparation'):
+                        st.markdown(f"**{texts['monograph_traditional_preparation']}**")
+                        st.markdown(herb_data['traditional_preparation'])
+
+    # --------------------------------------------------------
+    # 4. Quick Search Chips
     st.markdown(f"### {texts['quick_search']}")
     quick_searches = [
         {"drug": "Warfarin", "herb": "mwarobaini", "risk": "High"},
@@ -697,7 +697,7 @@ if data:
                     st.rerun()
 
     # --------------------------------------------------------
-    # 4. Input Section
+    # 5. Input Section
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
@@ -713,7 +713,7 @@ if data:
     st.markdown('</div>', unsafe_allow_html=True)
 
     # --------------------------------------------------------
-    # 5. Check Button
+    # 6. Check Button
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         check_button = st.button(texts['check_button'], type="primary", use_container_width=True)
@@ -843,7 +843,7 @@ if data:
                 st.info(f"No known interactions found between {herb_display} and your other medications.")
 
     # --------------------------------------------------------
-    # 6. Quick Reference & Search
+    # 7. Quick Reference & Search
     with st.expander(texts['view_common']):
         df_data = []
         for item in data[:10]:
@@ -875,7 +875,7 @@ if data:
             st.info(texts['no_matches'])
 
 # ------------------------------------------------------------
-# Sidebar (unchanged)
+# Sidebar
 with st.sidebar:
     st.image("https://img.icons8.com/color/96/000000/kenya.png", width=60)
     st.markdown(texts['about'])
