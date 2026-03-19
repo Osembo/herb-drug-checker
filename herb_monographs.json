@@ -1,0 +1,122 @@
+{
+  "mwarobaini": {
+    "scientific_name": "Azadirachta indica",
+    "common_uses": [
+      "Malaria",
+      "Skin conditions",
+      "Dental care",
+      "Diabetes"
+    ],
+    "potential_interactions": [
+      "Warfarin",
+      "Tenofovir",
+      "Simvastatin",
+      "Paracetamol"
+    ],
+    "contraindications": [
+      "Pregnancy",
+      "Liver disease",
+      "Autoimmune diseases"
+    ],
+    "side_effects": [
+      "Liver toxicity (with high doses)",
+      "Nausea",
+      "Vomiting"
+    ],
+    "traditional_preparation": "Bark and leaves boiled in water; used as tea or topical paste."
+  },
+  "moringa": {
+    "scientific_name": "Moringa oleifera",
+    "common_uses": [
+      "Diabetes",
+      "Hypertension",
+      "Malnutrition",
+      "Inflammation"
+    ],
+    "potential_interactions": [
+      "Metformin",
+      "Warfarin",
+      "Levothyroxine"
+    ],
+    "contraindications": [
+      "Pregnancy (avoid high doses)"
+    ],
+    "side_effects": [
+      "Nausea",
+      "Diarrhea (in high doses)"
+    ],
+    "traditional_preparation": "Leaves boiled as tea, dried and powdered, or added to food."
+  },
+  "garlic": {
+    "scientific_name": "Allium sativum",
+    "common_uses": [
+      "Hypertension",
+      "Hyperlipidemia",
+      "Antimicrobial"
+    ],
+    "potential_interactions": [
+      "Warfarin",
+      "Lisinopril",
+      "Metformin",
+      "Simvastatin"
+    ],
+    "contraindications": [
+      "Bleeding disorders",
+      "Before surgery"
+    ],
+    "side_effects": [
+      "Bad breath",
+      "Heartburn",
+      "Increased bleeding risk"
+    ],
+    "traditional_preparation": "Raw cloves crushed and eaten, or cooked in food."
+  },
+  "ginger": {
+    "scientific_name": "Zingiber officinale",
+    "common_uses": [
+      "Nausea",
+      "Inflammation",
+      "Digestive aid"
+    ],
+    "potential_interactions": [
+      "Warfarin",
+      "Metformin",
+      "Ibuprofen"
+    ],
+    "contraindications": [
+      "Gallstones",
+      "Pregnancy (high doses)"
+    ],
+    "side_effects": [
+      "Heartburn",
+      "Diarrhea"
+    ],
+    "traditional_preparation": "Fresh root steeped in hot water for tea."
+  },
+  "muguka": {
+    "scientific_name": "Catha edulis",
+    "common_uses": [
+      "Stimulant",
+      "Appetite suppressant"
+    ],
+    "potential_interactions": [
+      "Tenofovir",
+      "Efavirenz",
+      "Nevirapine",
+      "Dolutegravir",
+      "Sertraline",
+      "Amlodipine"
+    ],
+    "contraindications": [
+      "Pregnancy",
+      "Heart disease",
+      "Liver disease"
+    ],
+    "side_effects": [
+      "Insomnia",
+      "Anxiety",
+      "Increased blood pressure"
+    ],
+    "traditional_preparation": "Leaves chewed fresh."
+  }
+}
