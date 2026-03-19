@@ -37,7 +37,6 @@ def load_data():
     except:
         return []
 
-# Normalize data to handle both formats (drug vs Drug Name, etc.)
 def normalize_data(data):
     normalized = []
     for item in data:
@@ -81,7 +80,6 @@ def load_aliases():
             return json.load(f)
     except:
         return {}
-
 aliases = load_aliases()
 
 # Load conditions
@@ -92,7 +90,6 @@ def load_conditions():
             return json.load(f)
     except:
         return {}
-
 conditions_data = load_conditions()
 
 # Load herb monographs
@@ -103,8 +100,19 @@ def load_monographs():
             return json.load(f)
     except:
         return {}
-
 monographs = load_monographs()
+
+# Load compounds from ANPDB
+@st.cache_data
+def load_compounds():
+    try:
+        with open('compounds.json', 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except:
+        return {"compounds": {}, "herb_compounds": {}}
+compounds_data = load_compounds()
+herb_compounds = compounds_data.get('herb_compounds', {})
+compound_details = compounds_data.get('compounds', {})
 
 # Function to find canonical herb name
 def get_canonical_name(search_term):
@@ -440,7 +448,6 @@ if language == "English":
         "condition_placeholder": "Select a condition...",
         "condition_drugs_header": "Common medications for this condition:",
         "condition_herbs_header": "Herbs to be cautious with:",
-        "condition_check_button": "Check interactions with my medications",
         "condition_no_drugs": "No specific drug list for this condition.",
         "condition_no_herbs": "No specific herb warnings for this condition.",
         # Herb monograph
@@ -453,7 +460,13 @@ if language == "English":
         "monograph_contraindications": "Contraindications",
         "monograph_side_effects": "Possible side effects",
         "monograph_traditional_preparation": "Traditional preparation",
-        "monograph_not_found": "No monograph available for this herb yet.",
+        # Compound search
+        "compound_search_title": "🔬 Search by Active Compound",
+        "compound_search_placeholder": "Choose a compound...",
+        "compound_pubchem": "PubChem",
+        "compound_class": "Class",
+        "compound_subclass": "Subclass",
+        "compound_found_in": "Found in these herbs:",
     }
 else:
     texts = {
@@ -508,7 +521,6 @@ else:
         "condition_placeholder": "Chagua hali...",
         "condition_drugs_header": "Dawa za kawaida kwa hali hii:",
         "condition_herbs_header": "Mimea ya kuwa mwangalifu nayo:",
-        "condition_check_button": "Angalia mwingiliano na dawa zangu",
         "condition_no_drugs": "Hakuna orodha maalum ya dawa kwa hali hii.",
         "condition_no_herbs": "Hakuna tahadhari maalum za mimea kwa hali hii.",
         # Herb monograph
@@ -521,7 +533,13 @@ else:
         "monograph_contraindications": "Vikwazo",
         "monograph_side_effects": "Madhara yanayowezekana",
         "monograph_traditional_preparation": "Maandalizi ya kienyeji",
-        "monograph_not_found": "Hakuna maelezo ya mmea huu bado.",
+        # Compound search
+        "compound_search_title": "🔬 Tafuta kwa Kiambato Amilifu",
+        "compound_search_placeholder": "Chagua kiambato...",
+        "compound_pubchem": "PubChem",
+        "compound_class": "Aina",
+        "compound_subclass": "Kikundi",
+        "compound_found_in": "Inapatikana katika mimea hii:",
     }
 
 # Kenyan Flag Bar
@@ -606,25 +624,106 @@ if data:
                     st.info(texts['condition_no_herbs'])
 
     # --------------------------------------------------------
-    # Load herb monographs
-@st.cache_data
-def load_monographs():
-    try:
-        with open('herb_monographs.json', 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            print(f"✅ Loaded {len(data)} herb monographs")  # This will show in Streamlit Cloud logs
-            return data
-    except FileNotFoundError:
-        print("❌ herb_monographs.json not found!")
-        return {}
-    except json.JSONDecodeError as e:
-        print(f"❌ JSON error in herb_monographs.json: {e}")
-        return {}
+    # 3. Herb Monograph Section (with compounds)
+    with st.expander(texts['monograph_title']):
+        if not monographs:
+            st.warning("Monograph data not loaded.")
+        else:
+            herb_options = [""] + sorted(monographs.keys())
+            selected_herb = st.selectbox(
+                "",
+                options=herb_options,
+                format_func=lambda x: x.title() if x else texts['monograph_select_placeholder'],
+                key="monograph_select"
+            )
+            if selected_herb:
+                herb_data = monographs[selected_herb]
+                st.markdown(f"### {selected_herb.title()}")
 
-monographs = load_monographs()
+                if herb_data.get('scientific_name'):
+                    st.markdown(f"*{herb_data['scientific_name']}*")
+
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    # Active compounds from ANPDB
+                    herb_comp_list = herb_compounds.get(selected_herb, [])
+                    if herb_comp_list:
+                        st.markdown(f"**{texts['monograph_active_compounds']}**")
+                        for compound in herb_comp_list:
+                            details = compound_details.get(compound, {})
+                            pubchem_id = details.get('pubchem_id')
+                            if pubchem_id and pubchem_id != '-':
+                                st.markdown(f"- [{compound}](https://pubchem.ncbi.nlm.nih.gov/compound/{pubchem_id})")
+                            else:
+                                st.markdown(f"- {compound}")
+
+                    if herb_data.get('common_uses'):
+                        st.markdown(f"**{texts['monograph_common_uses']}**")
+                        for use in herb_data['common_uses']:
+                            st.markdown(f"- {use}")
+
+                    if herb_data.get('potential_interactions'):
+                        st.markdown(f"**{texts['monograph_potential_interactions']}**")
+                        for drug in herb_data['potential_interactions']:
+                            if st.button(f"🔍 {drug.title()}", key=f"mono_drug_{selected_herb}_{drug}"):
+                                st.session_state.drug_select = drug.title()
+                                st.session_state.herb_select = selected_herb.title()
+                                st.rerun()
+
+                with col2:
+                    if herb_data.get('contraindications'):
+                        st.markdown(f"**{texts['monograph_contraindications']}**")
+                        for contra in herb_data['contraindications']:
+                            st.markdown(f"- {contra}")
+
+                    if herb_data.get('side_effects'):
+                        st.markdown(f"**{texts['monograph_side_effects']}**")
+                        for effect in herb_data['side_effects']:
+                            st.markdown(f"- {effect}")
+
+                    if herb_data.get('traditional_preparation'):
+                        st.markdown(f"**{texts['monograph_traditional_preparation']}**")
+                        st.markdown(herb_data['traditional_preparation'])
 
     # --------------------------------------------------------
-    # 4. Quick Search Chips
+    # 4. Compound Search Section (NEW)
+    with st.expander(texts['compound_search_title']):
+        if not compound_details:
+            st.warning("Compound data not loaded.")
+        else:
+            compound_names = sorted(compound_details.keys())
+            selected_compound = st.selectbox(
+                "",
+                options=[""] + compound_names,
+                format_func=lambda x: x if x else texts['compound_search_placeholder'],
+                key="compound_select"
+            )
+            if selected_compound:
+                comp = compound_details[selected_compound]
+                st.markdown(f"### {selected_compound}")
+
+                col1, col2 = st.columns(2)
+                with col1:
+                    if comp.get('pubchem_id') and comp['pubchem_id'] != '-':
+                        st.markdown(f"**{texts['compound_pubchem']}:** [{comp['pubchem_id']}](https://pubchem.ncbi.nlm.nih.gov/compound/{comp['pubchem_id']})")
+                    st.markdown(f"**{texts['compound_class']}:** {comp.get('class', 'N/A')}")
+                    st.markdown(f"**{texts['compound_subclass']}:** {comp.get('subclass', 'N/A')}")
+
+                with col2:
+                    containing_herbs = []
+                    for herb, compounds in herb_compounds.items():
+                        if selected_compound in compounds:
+                            containing_herbs.append(herb)
+                    if containing_herbs:
+                        st.markdown(f"**{texts['compound_found_in']}**")
+                        for herb in containing_herbs:
+                            if st.button(f"🌿 {herb.title()}", key=f"comp_to_herb_{herb}"):
+                                st.session_state.monograph_select = herb
+                                st.rerun()
+
+    # --------------------------------------------------------
+    # 5. Quick Search Chips
     st.markdown(f"### {texts['quick_search']}")
     quick_searches = [
         {"drug": "Warfarin", "herb": "mwarobaini", "risk": "High"},
@@ -659,7 +758,7 @@ monographs = load_monographs()
                     st.rerun()
 
     # --------------------------------------------------------
-    # 5. Input Section
+    # 6. Input Section
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
@@ -675,7 +774,7 @@ monographs = load_monographs()
     st.markdown('</div>', unsafe_allow_html=True)
 
     # --------------------------------------------------------
-    # 6. Check Button
+    # 7. Check Button
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         check_button = st.button(texts['check_button'], type="primary", use_container_width=True)
@@ -805,7 +904,7 @@ monographs = load_monographs()
                 st.info(f"No known interactions found between {herb_display} and your other medications.")
 
     # --------------------------------------------------------
-    # 7. Quick Reference & Search
+    # 8. Quick Reference & Search
     with st.expander(texts['view_common']):
         df_data = []
         for item in data[:10]:
