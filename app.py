@@ -23,20 +23,57 @@ if 'last_result' not in st.session_state:
     st.session_state.last_result = None
 if 'report_submitted' not in st.session_state:
     st.session_state.report_submitted = False
-# My Meds list
 if 'my_meds' not in st.session_state:
     st.session_state.my_meds = []
 
 # ------------------------------------------------------------
-# Load data
+# Data loading functions with error handling
 @st.cache_data
 def load_data():
     try:
         with open('interactions.json', 'r', encoding='utf-8') as f:
             return json.load(f)['interactions']
-    except:
+    except Exception as e:
+        st.warning(f"Could not load interactions.json: {e}")
         return []
 
+@st.cache_data
+def load_aliases():
+    try:
+        with open('aliases.json', 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        st.warning(f"Could not load aliases.json: {e}")
+        return {}
+
+@st.cache_data
+def load_conditions():
+    try:
+        with open('conditions.json', 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        st.warning(f"Could not load conditions.json: {e}")
+        return {}
+
+@st.cache_data
+def load_monographs():
+    try:
+        with open('herb_monographs.json', 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        st.warning(f"Could not load herb_monographs.json: {e}")
+        return {}
+
+@st.cache_data
+def load_compounds():
+    try:
+        with open('compounds.json', 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        st.warning(f"Could not load compounds.json: {e}")
+        return {"compounds": {}, "herb_compounds": {}}
+
+# Normalize data (handles old Excel exports)
 def normalize_data(data):
     normalized = []
     for item in data:
@@ -69,68 +106,26 @@ def normalize_data(data):
             continue
     return normalized
 
+# Load all data
 raw_data = load_data()
 data = normalize_data(raw_data)
-
-# Load aliases
-@st.cache_data
-def load_aliases():
-    try:
-        with open('aliases.json', 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except:
-        return {}
 aliases = load_aliases()
-
-# Load conditions
-@st.cache_data
-def load_conditions():
-    try:
-        with open('conditions.json', 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except:
-        return {}
 conditions_data = load_conditions()
+monographs = load_monographs()
+compounds_data = load_compounds()
+herb_compounds = compounds_data.get('herb_compounds', {})
+compound_details = compounds_data.get('compounds', {})
 
-@st.cache_data
-def load_monographs():
-    try:
-        with open('herb_monographs.json', 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            st.write(f"✅ Monographs loaded: {len(data)} herbs")  # temporary
-            return data
-    except FileNotFoundError:
-        st.error("❌ herb_monographs.json not found in the repository root!")
-        return {}
-    except json.JSONDecodeError as e:
-        st.error(f"❌ JSON error in herb_monographs.json: {e}")
-        return {}
-
-@st.cache_data
-def load_compounds():
-    try:
-        with open('compounds.json', 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            st.write(f"✅ Compounds loaded: {len(data.get('compounds', {}))} compounds")
-            return data
-    except FileNotFoundError:
-        st.error("❌ compounds.json not found in the repository root!")
-        return {}
-    except json.JSONDecodeError as e:
-        st.error(f"❌ JSON error in compounds.json: {e}")
-        return {}
-
-# DEBUG: Show what we loaded
+# ----- Temporary debug output (remove later) -----
 st.write(f"✅ Monographs loaded: {len(monographs)} herbs")
 if monographs:
     st.write(f"   First few: {list(monographs.keys())[:5]}")
 else:
     st.write("❌ monographs is empty")
-
 st.write(f"✅ Compounds loaded: {len(compound_details)} compounds")
 st.write(f"✅ Herb-compound mappings: {len(herb_compounds)} herbs")
+# -------------------------------------------------
 
-# Function to find canonical herb name
 def get_canonical_name(search_term):
     if not search_term:
         return search_term
@@ -142,7 +137,6 @@ def get_canonical_name(search_term):
             return canonical
     return search_lower
 
-# Function to save reports
 def save_report(drug, herb, current_risk, reason, details):
     report = {
         "timestamp": str(datetime.datetime.now()),
@@ -642,7 +636,6 @@ if data:
     # --------------------------------------------------------
     # 3. Herb Monograph Section (with compounds)
     with st.expander(texts['monograph_title']):
-        st.write(f"DEBUG: Inside monograph expander, monographs keys: {list(monographs.keys())}")
         if not monographs:
             st.warning("Monograph data not loaded.")
         else:
@@ -704,7 +697,7 @@ if data:
                         st.markdown(herb_data['traditional_preparation'])
 
     # --------------------------------------------------------
-    # 4. Compound Search Section (NEW)
+    # 4. Compound Search Section
     with st.expander(texts['compound_search_title']):
         if not compound_details:
             st.warning("Compound data not loaded.")
