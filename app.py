@@ -114,6 +114,16 @@ compounds_data = load_compounds()
 herb_compounds = compounds_data.get('herb_compounds', {})
 compound_details = compounds_data.get('compounds', {})
 
+# DEBUG: Show what we loaded
+st.write(f"✅ Monographs loaded: {len(monographs)} herbs")
+if monographs:
+    st.write(f"   First few: {list(monographs.keys())[:5]}")
+else:
+    st.write("❌ monographs is empty")
+
+st.write(f"✅ Compounds loaded: {len(compound_details)} compounds")
+st.write(f"✅ Herb-compound mappings: {len(herb_compounds)} herbs")
+
 # Function to find canonical herb name
 def get_canonical_name(search_term):
     if not search_term:
