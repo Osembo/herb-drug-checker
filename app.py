@@ -607,59 +607,22 @@ if data:
 
     # --------------------------------------------------------
     # 3. Herb Monograph Section
-    with st.expander(texts['monograph_title']):
-        if not monographs:
-            st.warning("Monograph data not loaded.")
-        else:
-            herb_options = [""] + sorted(monographs.keys())
-            selected_herb = st.selectbox(
-                "",
-                options=herb_options,
-                format_func=lambda x: x.title() if x else texts['monograph_select_placeholder'],
-                key="monograph_select"
-            )
-            if selected_herb:
-                herb_data = monographs[selected_herb]
-                st.markdown(f"### {selected_herb.title()}")
+    # Load herb monographs
+@st.cache_data
+def load_monographs():
+    try:
+        with open('herb_monographs.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            print(f"✅ Loaded {len(data)} herb monographs")  # This will show in Streamlit Cloud logs
+            return data
+    except FileNotFoundError:
+        print("❌ herb_monographs.json not found!")
+        return {}
+    except json.JSONDecodeError as e:
+        print(f"❌ JSON error in herb_monographs.json: {e}")
+        return {}
 
-                if herb_data.get('scientific_name'):
-                    st.markdown(f"*{herb_data['scientific_name']}*")
-
-                col1, col2 = st.columns(2)
-
-                with col1:
-                    if herb_data.get('active_compounds'):
-                        st.markdown(f"**{texts['monograph_active_compounds']}**")
-                        for compound in herb_data['active_compounds']:
-                            st.markdown(f"- {compound}")
-
-                    if herb_data.get('common_uses'):
-                        st.markdown(f"**{texts['monograph_common_uses']}**")
-                        for use in herb_data['common_uses']:
-                            st.markdown(f"- {use}")
-
-                    if herb_data.get('potential_interactions'):
-                        st.markdown(f"**{texts['monograph_potential_interactions']}**")
-                        for drug in herb_data['potential_interactions']:
-                            if st.button(f"🔍 {drug.title()}", key=f"mono_drug_{selected_herb}_{drug}"):
-                                st.session_state.drug_select = drug.title()
-                                st.session_state.herb_select = selected_herb.title()
-                                st.rerun()
-
-                with col2:
-                    if herb_data.get('contraindications'):
-                        st.markdown(f"**{texts['monograph_contraindications']}**")
-                        for contra in herb_data['contraindications']:
-                            st.markdown(f"- {contra}")
-
-                    if herb_data.get('side_effects'):
-                        st.markdown(f"**{texts['monograph_side_effects']}**")
-                        for effect in herb_data['side_effects']:
-                            st.markdown(f"- {effect}")
-
-                    if herb_data.get('traditional_preparation'):
-                        st.markdown(f"**{texts['monograph_traditional_preparation']}**")
-                        st.markdown(herb_data['traditional_preparation'])
+monographs = load_monographs()
 
     # --------------------------------------------------------
     # 4. Quick Search Chips
