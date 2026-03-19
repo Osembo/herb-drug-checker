@@ -92,27 +92,33 @@ def load_conditions():
         return {}
 conditions_data = load_conditions()
 
-# Load herb monographs
 @st.cache_data
 def load_monographs():
     try:
         with open('herb_monographs.json', 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except:
+            data = json.load(f)
+            st.write(f"✅ Monographs loaded: {len(data)} herbs")  # temporary
+            return data
+    except FileNotFoundError:
+        st.error("❌ herb_monographs.json not found in the repository root!")
         return {}
-monographs = load_monographs()
+    except json.JSONDecodeError as e:
+        st.error(f"❌ JSON error in herb_monographs.json: {e}")
+        return {}
 
-# Load compounds from ANPDB
 @st.cache_data
 def load_compounds():
     try:
         with open('compounds.json', 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except:
-        return {"compounds": {}, "herb_compounds": {}}
-compounds_data = load_compounds()
-herb_compounds = compounds_data.get('herb_compounds', {})
-compound_details = compounds_data.get('compounds', {})
+            data = json.load(f)
+            st.write(f"✅ Compounds loaded: {len(data.get('compounds', {}))} compounds")
+            return data
+    except FileNotFoundError:
+        st.error("❌ compounds.json not found in the repository root!")
+        return {}
+    except json.JSONDecodeError as e:
+        st.error(f"❌ JSON error in compounds.json: {e}")
+        return {}
 
 # DEBUG: Show what we loaded
 st.write(f"✅ Monographs loaded: {len(monographs)} herbs")
