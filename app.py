@@ -636,6 +636,7 @@ if data:
     # --------------------------------------------------------
     # 3. Herb Monograph Section (with compounds)
     with st.expander(texts['monograph_title']):
+        st.write(f"DEBUG: Inside monograph expander, monographs keys: {list(monographs.keys())}")
         if not monographs:
             st.warning("Monograph data not loaded.")
         else:
