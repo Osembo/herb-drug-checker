@@ -606,7 +606,6 @@ if data:
                     st.info(texts['condition_no_herbs'])
 
     # --------------------------------------------------------
-    # 3. Herb Monograph Section
     # Load herb monographs
 @st.cache_data
 def load_monographs():
