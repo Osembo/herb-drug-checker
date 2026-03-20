@@ -603,30 +603,59 @@ if data:
                     st.info(texts['condition_no_herbs'])
 
     # --------------------------------------------------------
-    # 3. Herb Monograph Section (with compounds)
+
+    # 3. Herb Monograph Section (with compounds and scientific name search)
     with st.expander(texts['monograph_title']):
         if not monographs:
             st.warning("Monograph data not loaded.")
         else:
-            herb_options = [""] + sorted(monographs.keys())
-            selected_herb = st.selectbox(
+            # Add a text search that matches scientific names
+            st.markdown("##### Search by any name (common or scientific)")
+            search_term = st.text_input(
                 "",
+                placeholder=texts['monograph_select_placeholder'],
+                key="monograph_search",
+                label_visibility="collapsed"
+            )
+    
+            # Resolve search term to canonical herb name
+            selected_herb = None
+            if search_term:
+                canonical = get_canonical_name(search_term)
+                if canonical in monographs:
+                    selected_herb = canonical
+                else:
+                    st.warning(f"'{search_term}' not found. Try selecting from the list below.")
+    
+            # Dropdown for selection (optional, but keeps existing functionality)
+            herb_options = [""] + sorted(monographs.keys())
+            selected_herb_dropdown = st.selectbox(
+                "Or select from list:",
                 options=herb_options,
                 format_func=lambda x: x.title() if x else texts['monograph_select_placeholder'],
                 key="monograph_select"
             )
+    
+            # Use the search result if present, otherwise dropdown selection
             if selected_herb:
-                herb_data = monographs[selected_herb]
-                st.markdown(f"### {selected_herb.title()}")
-
+                final_herb = selected_herb
+            elif selected_herb_dropdown:
+                final_herb = selected_herb_dropdown
+            else:
+                final_herb = None
+    
+            if final_herb:
+                herb_data = monographs[final_herb]
+                st.markdown(f"### {final_herb.title()}")
+    
                 if herb_data.get('scientific_name'):
                     st.markdown(f"*{herb_data['scientific_name']}*")
-
+    
                 col1, col2 = st.columns(2)
-
+    
                 with col1:
                     # Active compounds from ANPDB
-                    herb_comp_list = herb_compounds.get(selected_herb, [])
+                    herb_comp_list = herb_compounds.get(final_herb, [])
                     if herb_comp_list:
                         st.markdown(f"**{texts['monograph_active_compounds']}**")
                         for compound in herb_comp_list:
@@ -636,31 +665,31 @@ if data:
                                 st.markdown(f"- [{compound}](https://pubchem.ncbi.nlm.nih.gov/compound/{pubchem_id})")
                             else:
                                 st.markdown(f"- {compound}")
-
+    
                     if herb_data.get('common_uses'):
                         st.markdown(f"**{texts['monograph_common_uses']}**")
                         for use in herb_data['common_uses']:
                             st.markdown(f"- {use}")
-
+    
                     if herb_data.get('potential_interactions'):
                         st.markdown(f"**{texts['monograph_potential_interactions']}**")
                         for drug in herb_data['potential_interactions']:
-                            if st.button(f"🔍 {drug.title()}", key=f"mono_drug_{selected_herb}_{drug}"):
+                            if st.button(f"🔍 {drug.title()}", key=f"mono_drug_{final_herb}_{drug}"):
                                 st.session_state.drug_select = drug.title()
-                                st.session_state.herb_select = selected_herb.title()
+                                st.session_state.herb_select = final_herb.title()
                                 st.rerun()
-
+    
                 with col2:
                     if herb_data.get('contraindications'):
                         st.markdown(f"**{texts['monograph_contraindications']}**")
                         for contra in herb_data['contraindications']:
                             st.markdown(f"- {contra}")
-
+    
                     if herb_data.get('side_effects'):
                         st.markdown(f"**{texts['monograph_side_effects']}**")
                         for effect in herb_data['side_effects']:
                             st.markdown(f"- {effect}")
-
+    
                     if herb_data.get('traditional_preparation'):
                         st.markdown(f"**{texts['monograph_traditional_preparation']}**")
                         st.markdown(herb_data['traditional_preparation'])
