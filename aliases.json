@@ -1,24 +1,1090 @@
 {
-  "mwarobaini": ["mwarobaini", "neem", "azadirachta indica", "mwarubaini", "mkilifi", "warobaini"],
-  "muguka": ["muguka", "khat", "miraa", "catha edulis", "veve", "mairungi", "muguka", "murungu"],
-  "moringa": ["moringa", "muringa", "mronge", "mlonge", "moringa oleifera", "murinja"],
-  "garlic": ["garlic", "kitunguu saumu", "kitunguu swaumu", "thumu", "allium sativum", "saumu"],
-  "ginger": ["ginger", "tangawizi", "zingiber officinale", "tangawizi"],
-  "tumeric": ["tumeric", "turmeric", "manjano", "binzari", "curcuma longa", "ndagu"],
-  "bitter melon": ["bitter melon", "bitter gourd", "mubirubiru", "karavila", "ndagu", "momordica charantia", "karela"],
-  "mukombero": ["mukombero", "mkombela", "mkombero", "mukombela"],
-  "cinnamon": ["cinnamon", "mdalasini", "cinnamomum", "dalasini"],
-  "aloe vera": ["aloe vera", "msubiri", "shubiri", "msubili", "aloe barbadensis", "aloe"],
-  "prunus africana": ["prunus africana", "mwiria", "mueri", "pygeum", "african cherry"],
-  "hibiscus": ["hibiscus", "hibiscus sabdariffa", "mkunazi", "maktubu", "rose mallow"],
-  "muraatina": ["muraatina", "muratina"],
-  "mukinduri": ["mukinduri"],
-  "muthiga": ["muthiga"],
-  "st. john's wort": ["st john's wort", "st johns wort", "st. john's wort", "hypericum", "hypericum perforatum"],
-  "echinacea": ["echinacea", "coneflower", "echinacea purpurea"],
-  "hawthorn": ["hawthorn", "crataegus", "haw berry"],
-  "licorice": ["licorice", "liquorice", "glycyrrhiza glabra"],
-  "dandelion": ["dandelion", "taraxacum", "lion's tooth"],
-  "red yeast rice": ["red yeast rice", "red rice yeast", "monascus"],
-  "bitter melon": ["bitter melon", "karavila", "mubirubiru"]
+  "mwarobaini": [
+    "mwarobaini",
+    "neem",
+    "azadirachta indica",
+    "mwarubaini",
+    "mkilifi",
+    "warobaini"
+  ],
+  "muguka": [
+    "muguka",
+    "khat",
+    "miraa",
+    "catha edulis",
+    "veve",
+    "mairungi",
+    "muguka",
+    "murungu"
+  ],
+  "moringa": [
+    "moringa",
+    "muringa",
+    "mronge",
+    "mlonge",
+    "moringa oleifera",
+    "murinja"
+  ],
+  "garlic": [
+    "garlic",
+    "kitunguu saumu",
+    "kitunguu swaumu",
+    "thumu",
+    "allium sativum",
+    "saumu"
+  ],
+  "ginger": [
+    "ginger",
+    "tangawizi",
+    "zingiber officinale",
+    "tangawizi"
+  ],
+  "tumeric": [
+    "tumeric",
+    "turmeric",
+    "manjano",
+    "binzari",
+    "curcuma longa",
+    "ndagu"
+  ],
+  "bitter melon": [
+    "bitter melon",
+    "karavila",
+    "mubirubiru"
+  ],
+  "mukombero": [
+    "mukombero",
+    "mkombela",
+    "mkombero",
+    "mukombela"
+  ],
+  "cinnamon": [
+    "cinnamon",
+    "mdalasini",
+    "cinnamomum",
+    "dalasini"
+  ],
+  "aloe vera": [
+    "aloe vera",
+    "msubiri",
+    "shubiri",
+    "msubili",
+    "aloe barbadensis",
+    "aloe"
+  ],
+  "prunus africana": [
+    "prunus africana",
+    "mwiria",
+    "mueri",
+    "pygeum",
+    "african cherry"
+  ],
+  "hibiscus": [
+    "hibiscus",
+    "hibiscus sabdariffa",
+    "mkunazi",
+    "maktubu",
+    "rose mallow"
+  ],
+  "muraatina": [
+    "muraatina",
+    "muratina"
+  ],
+  "mukinduri": [
+    "mukinduri",
+    "dombeya kirkii"
+  ],
+  "muthiga": [
+    "muthiga"
+  ],
+  "st. john's wort": [
+    "st john's wort",
+    "st johns wort",
+    "st. john's wort",
+    "hypericum",
+    "hypericum perforatum"
+  ],
+  "echinacea": [
+    "echinacea",
+    "coneflower",
+    "echinacea purpurea"
+  ],
+  "hawthorn": [
+    "hawthorn",
+    "crataegus",
+    "haw berry"
+  ],
+  "licorice": [
+    "licorice",
+    "liquorice",
+    "glycyrrhiza glabra"
+  ],
+  "dandelion": [
+    "dandelion",
+    "taraxacum",
+    "lion's tooth"
+  ],
+  "red yeast rice": [
+    "red yeast rice",
+    "red rice yeast",
+    "monascus"
+  ],
+  "abiro": [
+    "maerua decumbens"
+  ],
+  "buruu": [
+    "erythrina sacleuxii"
+  ],
+  "kilua": [
+    "uvaria denhardtiana"
+  ],
+  "mbazanzi": [
+    "cassipourea euryoides"
+  ],
+  "mbembakoshi": [
+    "erythrina sacleuxii"
+  ],
+  "mchawanda": [
+    "markhamia zanzibarica"
+  ],
+  "mchundakula": [
+    "ximenia americana"
+  ],
+  "mkengewa": [
+    "acacia polyacantha"
+  ],
+  "mkurati": [
+    "manilkara sulcata"
+  ],
+  "mkwamba kerengende": [
+    "elaeodendron schweinfurthianum"
+  ],
+  "mlalozi": [
+    "combretum aculeatum"
+  ],
+  "mnanyadia": [
+    "ehretia bakeri"
+  ],
+  "mpotowandovu mkuu": [
+    "ekebergia capensis"
+  ],
+  "mtengewa": [
+    "acacia senegal"
+  ],
+  "mtetewe": [
+    "acacia nilotica"
+  ],
+  "mukorobasha": [
+    "grewia villosa"
+  ],
+  "murukatwa": [
+    "uvaria denhardtiana"
+  ],
+  "mutu": [
+    "avicennia marina"
+  ],
+  "muyu": [
+    "adansonia digitata"
+  ],
+  "mvuma nyuki": [
+    "lawsonia inermis"
+  ],
+  "myae": [
+    "strychnos spinosa"
+  ],
+  "ukwaju": [
+    "tamarindus indica"
+  ],
+  "warendi": [
+    "manilkara mochisia"
+  ],
+  "mbabare": [
+    "terminalia sambesiaca"
+  ],
+  "medi": [
+    "hyphaene compressa"
+  ],
+  "merfured": [
+    "dombeya taylorii"
+  ],
+  "milanje": [
+    "dombeya taylorii"
+  ],
+  "minarui": [
+    "milicia excelsa"
+  ],
+  "mkalijote": [
+    "vitex ferruginea"
+  ],
+  "mkalijot": [
+    "vitex mombassae"
+  ],
+  "mkulangi": [
+    "cassipourea euryoides"
+  ],
+  "mlambale": [
+    "thespesia danis"
+  ],
+  "mlamoto": [
+    "annona senegalensis"
+  ],
+  "mogalishat": [
+    "vitex ferruginea",
+    "vitex mombassae"
+  ],
+  "mpotscho ndovu": [
+    "ormocarpum kirkii",
+    "ormocarpum trachycarpum"
+  ],
+  "mrongoleh": [
+    "ekebergia capensis"
+  ],
+  "msativu": [
+    "dichrostachys cinerea"
+  ],
+  "msingoni": [
+    "dichrostachys cinerea"
+  ],
+  "muguruere": [
+    "combretum schumannii"
+  ],
+  "mukai": [
+    "tamarindus indica"
+  ],
+  "mulliago": [
+    "antidesma venosum"
+  ],
+  "mulimuli": [
+    "carissa spinarum"
+  ],
+  "ngogaje": [
+    "antidesma venosum"
+  ],
+  "nothake": [
+    "capparis sepiana"
+  ],
+  "ong": [
+    "borassus aethiopum"
+  ],
+  "qoone": [
+    "hyphaene compressa"
+  ],
+  "safara": [
+    "moringa stenopetala"
+  ],
+  "samachi": [
+    "dalbergia melanoxylon"
+  ],
+  "sauini": [
+    "harrisonia abyssinica"
+  ],
+  "shelola": [
+    "kigelia africana"
+  ],
+  "shelole": [
+    "kigelia africana"
+  ],
+  "sheshubla": [
+    "dialium orientale"
+  ],
+  "shishobli": [
+    "dialium orientale"
+  ],
+  "siricha": [
+    "populus ilicifolia"
+  ],
+  "tiella": [
+    "encephalartos hildebrandtii"
+  ],
+  "tomorr": [
+    "uvaria acuminata"
+  ],
+  "tsina": [
+    "scutia myrtina"
+  ],
+  "tuari": [
+    "newtonia erlangeri"
+  ],
+  "unglise": [
+    "garcinia livingstonei"
+  ],
+  "vugu": [
+    "erythrina sacleuxii"
+  ],
+  "wahar": [
+    "lannea schweinfurthii"
+  ],
+  "yamed": [
+    "afzelia quanzensis"
+  ],
+  "abairtubata": [
+    "piliostigma thonningii"
+  ],
+  "abratu": [
+    "cussonia holstii"
+  ],
+  "adama": [
+    "euphorbia candelabrum"
+  ],
+  "adesa": [
+    "rhus natalensis"
+  ],
+  "agarmyaab": [
+    "maerua decumbens"
+  ],
+  "akoku": [
+    "oncoba spinosa"
+  ],
+  "amares": [
+    "acacia breviscipa"
+  ],
+  "ammess": [
+    "commiphora africana"
+  ],
+  "amo": [
+    "euphorbia tirucalli"
+  ],
+  "andarak": [
+    "lannea triphylla"
+  ],
+  "andaraka": [
+    "lannea schimperi"
+  ],
+  "anona": [
+    "trichilia emetica"
+  ],
+  "aru": [
+    "juniperus procera"
+  ],
+  "awagino": [
+    "flueggea virosa"
+  ],
+  "baabido": [
+    "acacia senegal"
+  ],
+  "baddan": [
+    "balanites aegyptiaca",
+    "balanites rotundifolia"
+  ],
+  "balanga": [
+    "delonix baccal"
+  ],
+  "bamba": [
+    "melia volkensii"
+  ],
+  "baresa": [
+    "terminalia brownii"
+  ],
+  "muhumbu": [
+    "sema singueana"
+  ],
+  "muizu wa arisa": [
+    "thylachium thomasii"
+  ],
+  "mujaje": [
+    "strychnos madagascarriensis",
+    "strychnos spinosa"
+  ],
+  "mukironda": [
+    "ehretia bakeri"
+  ],
+  "mukivure": [
+    "lamnea schweinfurthii"
+  ],
+  "mukololo": [
+    "margaritaria discoidea"
+  ],
+  "mukuikwaiyu": [
+    "ozoroa obovata"
+  ],
+  "mukulu": [
+    "dobera glabra"
+  ],
+  "mukuna mbawa": [
+    "xylopia parviflora"
+  ],
+  "mukunazi": [
+    "ziziphus mauritiana"
+  ],
+  "munago": [
+    "manilkara mochisia"
+  ],
+  "mung'ambo": [
+    "manilkara sansibarensis"
+  ],
+  "munwamadzi": [
+    "trichilia emetica"
+  ],
+  "munyahi": [
+    "scutia myrtina"
+  ],
+  "munyanga kitswa": [
+    "allophylus rubifolius"
+  ],
+  "munyee": [
+    "dovyalis macrocalyx"
+  ],
+  "muroia": [
+    "sterculia africana"
+  ],
+  "mupweke": [
+    "diospyros squarrosa"
+  ],
+  "muratina": [
+    "kigelia africana"
+  ],
+  "murori": [
+    "uvaria acuminata"
+  ],
+  "musishwi": [
+    "commiphora africana"
+  ],
+  "mutakuma": [
+    "annona senegalensis"
+  ],
+  "mutanga": [
+    "spirostachys venenifera"
+  ],
+  "mutongazi": [
+    "landolphia kirkii"
+  ],
+  "mutsani": [
+    "sideroxylon inerme"
+  ],
+  "mutsugutsugu": [
+    "trema orientalis"
+  ],
+  "mutsungwi": [
+    "dialiurn orientale"
+  ],
+  "mutunguru": [
+    "thylachium thomasii"
+  ],
+  "muungo": [
+    "landolphia kirkii"
+  ],
+  "muuyu": [
+    "adansonia digitata"
+  ],
+  "muviru": [
+    "vangueria infausta"
+  ],
+  "muyama": [
+    "croton megalocarpus"
+  ],
+  "muzungi": [
+    "moringa oleifera"
+  ],
+  "mviru": [
+    "vangueria infausta"
+  ],
+  "mvuma nyuchi": [
+    "premna chrysocladia",
+    "premna resinosa"
+  ],
+  "mvuma": [
+    "premna chrysocladia"
+  ],
+  "mvure": [
+    "premna resinosa"
+  ],
+  "mwadiga": [
+    "milicia excelsa"
+  ],
+  "mwamba": [
+    "adenium obesum"
+  ],
+  "mwanakagwagwa": [
+    "afzelia quanzensis"
+  ],
+  "mwanga": [
+    "lannea schimperi",
+    "terminalia mantaly"
+  ],
+  "mwange": [
+    "terminalia prunioides"
+  ],
+  "mware": [
+    "terminalia spinosa"
+  ],
+  "mzahe": [
+    "bombax rhodognaphalon"
+  ],
+  "mazmbarau": [
+    "julbernardia magnistipulata"
+  ],
+  "mziazia": [
+    "syzygium cumini"
+  ],
+  "mzongolo": [
+    "maytenus senegalensis"
+  ],
+  "mzunguzungu": [
+    "hymenaea verrucosa"
+  ],
+  "nago (fruit)": [
+    "trema orientalis"
+  ],
+  "nazi (fruit)": [
+    "manilkara mochisia"
+  ],
+  "ng'ambo (fruit)": [
+    "cocos nucifera"
+  ],
+  "tomoko (fruit)": [
+    "manilkara sansibarensis"
+  ],
+  "tsungwi (fruit)": [
+    "annona cherimola"
+  ],
+  "tundukula (fruit)": [
+    "dialium orientale"
+  ],
+  "utungu": [
+    "ximenia americana"
+  ],
+  "virori (fruit)": [
+    "acokanthera schimperi"
+  ],
+  "zambarau (fruit)": [
+    "uvaria acuminata",
+    "syzygium cumini"
+  ],
+  "lama": [
+    "ximenia americana"
+  ],
+  "lamalogi": [
+    "maerua decumbens"
+  ],
+  "lamaloki": [
+    "maerua decumbens"
+  ],
+  "lderendei": [
+    "ziziphus mucronata"
+  ],
+  "lderkesi": [
+    "acacia senegal"
+  ],
+  "lera": [
+    "acacia seyal"
+  ],
+  "lgweita": [
+    "cordia sinensis"
+  ],
+  "lkiloriti": [
+    "acacia nilotica"
+  ],
+  "lkogomi": [
+    "grewia tembensis",
+    "grewia tenax"
+  ],
+  "lkunyi": [
+    "acacia tortilis"
+  ],
+  "lmampaai": [
+    "ziziphus mauritiana"
+  ],
+  "lmang'wa": [
+    "sclerocarya birrea"
+  ],
+  "lmisigiyo": [
+    "rhus natalensis"
+  ],
+  "lmisigiyoi": [
+    "rhus natalensis"
+  ],
+  "lmuleel": [
+    "cordia monoica"
+  ],
+  "lnaboli": [
+    "ficus sur",
+    "ficus sycomorus"
+  ],
+  "loisuki": [
+    "zanthoxylum chalybeum"
+  ],
+  "longoosoiro": [
+    "fluegega virosa"
+  ],
+  "losuukui": [
+    "zanthoxylum chalybeum"
+  ],
+  "lowa": [
+    "balanites aegyptiaca"
+  ],
+  "lowei": [
+    "balanites aegyptiaca"
+  ],
+  "lapruna": [
+    "hyphaeae compressa"
+  ],
+  "laprulai": [
+    "hyphaeae compressa"
+  ],
+  "lpupo": [
+    "grewia villosa"
+  ],
+  "lpupoi": [
+    "grewia villosa"
+  ],
+  "lsek": [
+    "cordia monoica"
+  ],
+  "lseki": [
+    "cordia monoica"
+  ],
+  "ltepes": [
+    "acacia tortilis"
+  ],
+  "mobonu": [
+    "ricinus communis"
+  ],
+  "mulalati": [
+    "populus ilicifolia"
+  ],
+  "muleelin": [
+    "cordia monoica"
+  ],
+  "nkampiror": [
+    "lannea triphylla"
+  ],
+  "nkampurori": [
+    "lannea triphylla"
+  ],
+  "salapani": [
+    "cordia sinensis"
+  ],
+  "sericho": [
+    "boscia coriacea",
+    "boscia coriacea"
+  ],
+  "sukele": [
+    "delonix elata"
+  ],
+  "ikengeta": [
+    "senna siamea"
+  ],
+  "ikoloviu": [
+    "persea americana"
+  ],
+  "ikulutui": [
+    "ensete ventricosum"
+  ],
+  "ilaa": [
+    "tithonia diversifolia"
+  ],
+  "ilala (kitui: mbitini)": [
+    "hyphaeae compressa"
+  ],
+  "ilangala": [
+    "solanecto mamii"
+  ],
+  "ilawa": [
+    "grewia bicolor"
+  ],
+  "isavi": [
+    "albizia glaberrima"
+  ],
+  "itandambo": [
+    "capparis sepiiaria"
+  ],
+  "itithi lunga": [
+    "combretum collinum"
+  ],
+  "iviini": [
+    "acacia drepanolobium"
+  ],
+  "kalamba": [
+    "crotalaria agatiflora"
+  ],
+  "kiae": [
+    "sesamothamnus busseanus"
+  ],
+  "kiathani": [
+    "strychnos spinosa"
+  ],
+  "kikaanga kanywa": [
+    "flacouritia indica"
+  ],
+  "kikaati": [
+    "garcinia livingstonei"
+  ],
+  "kikaitha": [
+    "faurea saligna"
+  ],
+  "kikalawa": [
+    "dobera glabra"
+  ],
+  "kikambua": [
+    "grewia bicolor"
+  ],
+  "kikathani": [
+    "dovyalis caffra"
+  ],
+  "kikawa": [
+    "flacouritia indica"
+  ],
+  "kiketuhki": [
+    "carissa spinarum"
+  ],
+  "kikolakolania": [
+    "faurea saligna"
+  ],
+  "kikole": [
+    "strychnos madagascarriensis"
+  ],
+  "kikolya (makueni)": [
+    "acacia senegal",
+    "lannea alata"
+  ],
+  "mateluk": [
+    "acacia lahai"
+  ],
+  "natiatia": [
+    "sesbania sesban"
+  ],
+  "ng'osonaik": [
+    "balanites aegyptiaca"
+  ],
+  "ng'oswet": [
+    "balanites aegyptiaca"
+  ],
+  "ng'osyet (fruit)": [
+    "balanites aegyptiaca"
+  ],
+  "serti": [
+    "podocarpus latifolius"
+  ],
+  "sirik": [
+    "faurea saligna"
+  ],
+  "situtua": [
+    "myrsine melanophloeos"
+  ],
+  "tamanges (plural)": [
+    "uvaria scheffleri"
+  ],
+  "tamangesig": [
+    "uvaria scheffleri"
+  ],
+  "tamangesyat": [
+    "uvaria scheffleri"
+  ],
+  "tenduet": [
+    "prunus africana"
+  ],
+  "tungururak (fruit)": [
+    "flacourtia indica"
+  ],
+  "tungururwet": [
+    "flacourtia indica"
+  ],
+  "yemit": [
+    "olea europaea"
+  ],
+  "ihindu": [
+    "ensete ventricosum"
+  ],
+  "kaiyaba": [
+    "dovyalis caffra"
+  ],
+  "kamiti": [
+    "filicium decipiens"
+  ],
+  "kariaria": [
+    "euphorbia tirucalli"
+  ],
+  "kiage": [
+    "oncoba spinosa"
+  ],
+  "kimuanga": [
+    "manihot glaziovii"
+  ],
+  "kinoa": [
+    "synsepalum brevipes"
+  ],
+  "kiruru": [
+    "acokanthera oppositifolia"
+  ],
+  "kithuri": [
+    "euphorbia candelabrum"
+  ],
+  "kiururu": [
+    "acokanthera oppositifolia"
+  ],
+  "maguna ngui (fruit)": [
+    "persea americana"
+  ],
+  "maigoya": [
+    "plectranthus barbatus"
+  ],
+  "maruru": [
+    "tithonia diversifolia"
+  ],
+  "matindia ariithi": [
+    "embelia schimperi"
+  ],
+  "mburu (fruit)": [
+    "vangueria madagascariensis"
+  ],
+  "minoria": [
+    "eriobotrya japonica"
+  ],
+  "morogorogo": [
+    "cussonia holstii"
+  ],
+  "mubage": [
+    "caesalpinia decapetala"
+  ],
+  "mubariti": [
+    "grevillea robusta"
+  ],
+  "mubau": [
+    "eucalyptus camaldulensis",
+    "eucalyptus globulus",
+    "eucalyptus saligna"
+  ],
+  "mubera": [
+    "psidium guajava"
+  ],
+  "mubiribiri": [
+    "schinus molle"
+  ],
+  "mubiru": [
+    "vangueria apiculata",
+    "vangueria madagascariensis"
+  ],
+  "mubiru ng'ombe": [
+    "vangueria volkensii"
+  ],
+  "mubura": [
+    "vangueria volkensii"
+  ],
+  "muburuti": [
+    "rhamnus staddo"
+  ],
+  "mubuthi": [
+    "eriobotrya japonica"
+  ],
+  "mucakaranda": [
+    "caesalpinia volkensii"
+  ],
+  "mucarage": [
+    "jacaranda mimosifolia"
+  ],
+  "mucemeki": [
+    "olea capensis"
+  ],
+  "muchagatha": [
+    "cornus volkensii"
+  ],
+  "muchangire": [
+    "zanthoxylum gilletii"
+  ],
+  "mucherere": [
+    "crotalaria axillaris"
+  ],
+  "muchinda nugu": [
+    "pistacia aethiopica"
+  ],
+  "muchingiri": [
+    "pinus patula",
+    "crotalaria goodiiformis"
+  ],
+  "muchogi": [
+    "senna spectabilis"
+  ],
+  "muchorowe": [
+    "apodytes dimidiata"
+  ],
+  "mucohi": [
+    "nuxia congesta"
+  ],
+  "mucuthi": [
+    "lippia kituiensis"
+  ],
+  "mugaa": [
+    "caesalpinia volkensii",
+    "acacia abyssinica",
+    "acacia hockii",
+    "acacia lahai"
+  ],
+  "mugaita": [
+    "acacia nilotica",
+    "acacia seyal"
+  ],
+  "mugonyoni": [
+    "myrsine africana"
+  ],
+  "mugu": [
+    "myrsine melanophloeos"
+  ],
+  "mugu wa munyati": [
+    "apodytes dimidiata"
+  ],
+  "muguchwa": [
+    "landolphia buchananii"
+  ],
+  "mugumo ciano": [
+    "landolphia buchananii"
+  ],
+  "mugumo": [
+    "zanthoxylum usambarense"
+  ],
+  "muhathi": [
+    "mimusops kummel"
+  ],
+  "muhatia": [
+    "ficus thonningii"
+  ],
+  "muhehete": [
+    "sapium ellipticum"
+  ],
+  "muhethi (nyeri)": [
+    "milletia dura"
+  ],
+  "muhethu": [
+    "pistacia aethiopica"
+  ],
+  "muhoigwa": [
+    "zanthoxylum usambarense"
+  ],
+  "muhooru": [
+    "trema orientalis"
+  ],
+  "muhukura": [
+    "antidesma venosum"
+  ],
+  "muhurangware": [
+    "hagenia abyssinica",
+    "brachylaea huillensis"
+  ],
+  "muhuru": [
+    "mondia whytei",
+    "pavetta abyssinica"
+  ],
+  "muhuti": [
+    "scutia myrtina"
+  ],
+  "muigaiqua": [
+    "vitex doniana"
+  ],
+  "muikoni": [
+    "vitex kenienisis"
+  ],
+  "muiri": [
+    "erythrina abyssinica"
+  ],
+  "muirongi": [
+    "oncoba spinosa"
+  ],
+  "muiruthi": [
+    "blighia unijugata"
+  ],
+  "mukambura": [
+    "prunus africana"
+  ],
+  "mukandamia": [
+    "casaeria battiscombei"
+  ],
+  "mukaragati": [
+    "diospyros abyssinica"
+  ],
+  "mukarakinga": [
+    "dovyalis abyssinica"
+  ],
+  "mukarara": [
+    "macadamia integrifolia"
+  ],
+  "mukau": [
+    "fagaropsis angolensis"
+  ],
+  "mukawa": [
+    "rhamnus prinoides"
+  ],
+  "mukeu": [
+    "margaritaria discoidea",
+    "melia volkensii"
+  ],
+  "mukima": [
+    "carissa spinarum"
+  ],
+  "mukindu": [
+    "dombeya burgesiae"
+  ],
+  "mukinyai": [
+    "dombeya torrida"
+  ],
+  "mukoe": [
+    "grevillea robusta"
+  ],
+  "mukoigo": [
+    "phoenix reclinata"
+  ],
+  "mukondwe": [
+    "croton megalocarpus"
+  ],
+  "mukorobea": [
+    "euclea divinorum"
+  ],
+  "mukorombothi": [
+    "syzygium guineense"
+  ],
+  "mukubu": [
+    "bridelia micrantha"
+  ],
+  "mukuhakuha": [
+    "antidesma venosum"
+  ],
+  "mukui": [
+    "persea americana",
+    "cornus volkensii"
+  ],
+  "mukungugu": [
+    "craibia brownii"
+  ],
+  "mukunguu": [
+    "macaranga kilimandscharica"
+  ],
+  "mukuo": [
+    "ehretia cymosa"
+  ],
+  "mukura": [
+    "newtonia buchananii"
+  ],
+  "mukurue": [
+    "commiphora eminii"
+  ],
+  "mukuu": [
+    "erythrina melanacantha"
+  ],
+  "mukuyu": [
+    "cordia monoica",
+    "combretum molle"
+  ],
+  "mulangari": [
+    "albizia gummifera"
+  ],
+  "mumondo": [
+    "cordia monoica"
+  ],
+  "muna": [
+    "ficus sur"
+  ],
+  "munderendu": [
+    "ficus sycomorus",
+    "scutia myrtina"
+  ],
+  "munieria": [
+    "hagenia abyssinica"
+  ],
+  "munjugu": [
+    "pouteria adolfi-friederici"
+  ],
+  "munoa": [
+    "teclea simplicifolia"
+  ],
+  "mununga": [
+    "vepris nobilis"
+  ]
 }
