@@ -27,14 +27,13 @@ if 'my_meds' not in st.session_state:
     st.session_state.my_meds = []
 
 # ------------------------------------------------------------
-# Data loading functions with error handling
+# Data loading functions
 @st.cache_data
 def load_data():
     try:
         with open('interactions.json', 'r', encoding='utf-8') as f:
             return json.load(f)['interactions']
-    except Exception as e:
-        st.warning(f"Could not load interactions.json: {e}")
+    except Exception:
         return []
 
 @st.cache_data
@@ -42,8 +41,7 @@ def load_aliases():
     try:
         with open('aliases.json', 'r', encoding='utf-8') as f:
             return json.load(f)
-    except Exception as e:
-        st.warning(f"Could not load aliases.json: {e}")
+    except Exception:
         return {}
 
 @st.cache_data
@@ -51,8 +49,7 @@ def load_conditions():
     try:
         with open('conditions.json', 'r', encoding='utf-8') as f:
             return json.load(f)
-    except Exception as e:
-        st.warning(f"Could not load conditions.json: {e}")
+    except Exception:
         return {}
 
 @st.cache_data
@@ -60,8 +57,7 @@ def load_monographs():
     try:
         with open('herb_monographs.json', 'r', encoding='utf-8') as f:
             return json.load(f)
-    except Exception as e:
-        st.warning(f"Could not load herb_monographs.json: {e}")
+    except Exception:
         return {}
 
 @st.cache_data
@@ -69,12 +65,11 @@ def load_compounds():
     try:
         with open('compounds.json', 'r', encoding='utf-8') as f:
             return json.load(f)
-    except Exception as e:
-        st.warning(f"Could not load compounds.json: {e}")
+    except Exception:
         return {"compounds": {}, "herb_compounds": {}}
 
-# Normalize data (handles old Excel exports)
 def normalize_data(data):
+    """Convert old Excel‑style data to standard format."""
     normalized = []
     for item in data:
         if 'drug' in item:
@@ -100,13 +95,12 @@ def normalize_data(data):
                 if item.get('Notes'):
                     new_item['notes'] = item['Notes']
                 normalized.append(new_item)
-            except:
+            except Exception:
                 continue
         else:
             continue
     return normalized
 
-# Load all data
 raw_data = load_data()
 data = normalize_data(raw_data)
 aliases = load_aliases()
@@ -115,16 +109,6 @@ monographs = load_monographs()
 compounds_data = load_compounds()
 herb_compounds = compounds_data.get('herb_compounds', {})
 compound_details = compounds_data.get('compounds', {})
-
-# ----- Temporary debug output (remove later) -----
-st.write(f"✅ Monographs loaded: {len(monographs)} herbs")
-if monographs:
-    st.write(f"   First few: {list(monographs.keys())[:5]}")
-else:
-    st.write("❌ monographs is empty")
-st.write(f"✅ Compounds loaded: {len(compound_details)} compounds")
-st.write(f"✅ Herb-compound mappings: {len(herb_compounds)} herbs")
-# -------------------------------------------------
 
 def get_canonical_name(search_term):
     if not search_term:
@@ -159,7 +143,7 @@ def save_report(drug, herb, current_risk, reason, details):
     st.session_state.report_submitted = True
 
 # ------------------------------------------------------------
-# UI CSS
+# UI CSS (full)
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -252,12 +236,6 @@ st.markdown("""
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba(46, 125, 50, 0.4) !important;
 }
-.chip-container {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin: 1rem 0;
-}
 .emergency-button {
     background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%);
     padding: 1rem;
@@ -337,9 +315,6 @@ div[role="listbox"] li:hover {
     color: #4a4a4a !important;
     opacity: 1 !important;
 }
-div[data-testid="stSelectbox"] div[data-baseweb="select"] {
-    color: #000000 !important;
-}
 .streamlit-expanderContent {
     color: #1a2e3a !important;
 }
@@ -387,10 +362,6 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] {
     div[data-testid="stSelectbox"] > div {
         min-height: 3rem;
     }
-    .chip-container button {
-        font-size: 0.9rem !important;
-        padding: 0.4rem 0.8rem !important;
-    }
     [data-testid="stSidebar"] {
         padding: 1rem !important;
     }
@@ -398,7 +369,6 @@ div[data-testid="stSelectbox"] div[data-baseweb="select"] {
 </style>
 """, unsafe_allow_html=True)
 
-# ------------------------------------------------------------
 # Language selection
 col1, col2 = st.columns([3, 1])
 with col2:
@@ -564,7 +534,6 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 if data:
-    # Get all unique drugs
     all_drugs = sorted(list(set([item['drug'].title() for item in data if item['drug'] != "any"])))
     all_herbs = sorted(list(set(aliases.keys()))) if aliases else []
 
@@ -789,7 +758,6 @@ if data:
     with col2:
         check_button = st.button(texts['check_button'], type="primary", use_container_width=True)
 
-    # Handle search
     if check_button:
         if not drug_input or not herb_input:
             st.warning("⚠️ Please select both a drug and herb")
@@ -812,7 +780,6 @@ if data:
                         break
             st.session_state.last_result = result
 
-    # Display results
     if st.session_state.search_performed and st.session_state.last_drug:
         result = st.session_state.last_result
         drug_display = st.session_state.last_drug
@@ -872,7 +839,6 @@ if data:
             if st.button(texts['request_button']):
                 st.success(f"✅ Thank you! We'll research {drug_display} + {herb_display}")
 
-        # Check against My Meds list
         if st.session_state.my_meds:
             st.markdown(f"### {texts['my_meds_check_header']}")
             found_any = False
