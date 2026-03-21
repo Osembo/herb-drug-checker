@@ -62,13 +62,22 @@ def load_monographs():
         return {}
 
 @st.cache_data
-def load_compounds():
+def load_compounds_excel():
+    """Load and process the Kenyan compounds Excel file for bioactivity search."""
     try:
-        with open('compounds.json', 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except Exception:
-        return {"compounds": {}, "herb_compounds": {}}
-
+        # Try to import openpyxl; if not installed, return None
+        import openpyxl
+    except ImportError:
+        st.warning("openpyxl is required to read Excel files. Please install it: pip install openpyxl")
+        return None
+    try:
+        data_path = Path(__file__).parent / 'kenyan_compounds.xlsx'
+        df = pd.read_excel(data_path, sheet_name='molecules (1)')
+        # ... rest of processing
+    except Exception as e:
+        st.warning(f"Could not load compounds Excel: {e}")
+        return None
+        
 @st.cache_data
 def load_compounds_excel():
     """Load and process the Kenyan compounds Excel file for bioactivity search."""
