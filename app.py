@@ -26,9 +26,11 @@ if 'report_submitted' not in st.session_state:
     st.session_state.report_submitted = False
 if 'my_meds' not in st.session_state:
     st.session_state.my_meds = []
+if 'active_tab' not in st.session_state:
+    st.session_state.active_tab = "Interaction Checker"
 
 # ------------------------------------------------------------
-# Data loading functions
+# Data loading functions (same as before)
 # ------------------------------------------------------------
 @st.cache_data
 def load_data():
@@ -72,23 +74,17 @@ def load_compounds():
 
 @st.cache_data
 def load_compounds_excel():
-    """Load and process the Kenyan compounds Excel file for bioactivity search."""
     try:
-        import openpyxl  # check if installed
+        import openpyxl
     except ImportError:
-        st.warning("Missing openpyxl. Please install it: pip install openpyxl")
         return None
-
     try:
         data_path = Path(__file__).parent / 'kenyan_compounds.xlsx'
         df = pd.read_excel(data_path, sheet_name='molecules (1)')
         df = df.fillna('')
-        # Split lists
         df['Species_list'] = df['Species'].apply(lambda x: [s.strip() for s in x.split(';')] if x else [])
         df['Bioactivities_list'] = df['Bioactivities'].apply(lambda x: [s.strip() for s in x.split(';')] if x else [])
         df['PMIDs_list'] = df['PMIDs'].apply(lambda x: [s.strip() for s in x.split(';')] if x else [])
-
-        # Build species -> list of compounds with bioactivities and PMIDs
         species_data = {}
         for _, row in df.iterrows():
             compound = row['Compound Name']
@@ -103,15 +99,13 @@ def load_compounds_excel():
                     'pmids': pmid_list
                 })
         return species_data
-    except Exception as e:
-        st.warning(f"Could not load compounds Excel: {e}")
+    except Exception:
         return None
 
 # ------------------------------------------------------------
 # Helper functions
 # ------------------------------------------------------------
 def normalize_data(data):
-    """Convert old Excel‑style data to standard format."""
     normalized = []
     for item in data:
         if 'drug' in item:
@@ -175,13 +169,8 @@ monographs = load_monographs()
 compounds_data = load_compounds()
 herb_compounds = compounds_data.get('herb_compounds', {})
 compound_details = compounds_data.get('compounds', {})
-
-# Load compounds Excel with caching
 species_data = load_compounds_excel()
 
-# ------------------------------------------------------------
-# Functions that depend on loaded aliases
-# ------------------------------------------------------------
 def get_canonical_name(search_term):
     if not search_term:
         return search_term
@@ -215,7 +204,7 @@ for bio, use in bio_to_use.items():
     use_to_bios.setdefault(use, []).append(bio)
 
 # ------------------------------------------------------------
-# CSS and UI
+# CSS (same as before)
 # ------------------------------------------------------------
 st.markdown("""
 <style>
@@ -442,174 +431,160 @@ div[role="listbox"] li:hover {
 </style>
 """, unsafe_allow_html=True)
 
-# Language selection
-col1, col2 = st.columns([3, 1])
-with col2:
-    language = st.selectbox("🌐", ["English", "Kiswahili"])
-
-# English texts
-if language == "English":
-    texts = {
-        "title": "🌿 TCIM-Biomedicine Interaction Checker",
-        "subtitle": "Traditional, Complementary & Integrative Medicine | Created in Kenya 🇰🇪",
-        "drug_label": "💊 Medication",
-        "drug_placeholder": "e.g., warfarin, metformin, tenofovir",
-        "herb_label": "🌿 Herb / TCIM",
-        "herb_placeholder": "e.g., moringa, mwarobaini, neem",
-        "check_button": "🔍 Check Interaction",
-        "result_title": "📋 Interaction Result",
-        "high_risk": "🚨🚨 HIGH RISK 🚨🚨",
-        "moderate_risk": "⚠️⚠️ MODERATE RISK ⚠️⚠️",
-        "low_risk": "✅ LOW RISK ✅",
-        "unknown_risk": "❓ UNKNOWN ❓",
-        "explanation": "Explanation",
-        "recommendation": "Recommendation",
-        "mechanism": "🔬 Mechanism of Action",
-        "no_data_message": "No specific data for",
-        "no_data_note": "This does NOT mean the combination is safe.",
-        "advice_1": "• Consult a pharmacist or doctor",
-        "advice_2": "• Keep a list of all herbs and medications",
-        "advice_3": "• Start with small amounts",
-        "advice_4": "• Call 719 in emergency",
-        "view_common": "📚 View Common Interactions",
-        "quick_search": "🔍 Quick Search",
-        "search_all": "🔎 Search All",
-        "search_placeholder": "Search by drug or herb...",
-        "found": "Found {} interactions",
-        "no_matches": "No matches found",
-        "report_title": "📢 Report a Problem",
-        "report_question": "What's wrong?",
-        "report_button": "📤 Submit Report",
-        "report_thanks": "✅ Thank you! Our team will review.",
-        "request_button": "📢 Request this combination",
-        "disclaimer": "⚠️ For informational purposes only. Not medical advice.",
-        "emergency": "🚨 EMERGENCY: 719 (Kenya Poison Control)",
-        "stats": "📊 Database Stats",
-        "about": "### About This Tool",
-        "last_updated": "Last Updated: March 2026",
-        "footer": "Made with ❤️ for Kenya",
-        "my_meds_title": "💊 My Medications",
-        "my_meds_add_label": "Add a drug to your list",
-        "my_meds_add_placeholder": "Select a drug...",
-        "my_meds_current": "Your current medications:",
-        "my_meds_remove": "Remove",
-        "my_meds_empty": "No medications saved yet. Add some above.",
-        "my_meds_check_header": "🔍 Checking against your medications:",
-        "condition_title": "🔍 Search by Condition",
-        "condition_placeholder": "Select a condition...",
-        "condition_drugs_header": "Common medications for this condition:",
-        "condition_herbs_header": "Herbs to be cautious with:",
-        "condition_no_drugs": "No specific drug list for this condition.",
-        "condition_no_herbs": "No specific herb warnings for this condition.",
-        "monograph_title": "🌿 TCIM Monograph",
-        "monograph_select_placeholder": "Select an herb...",
-        "monograph_scientific_name": "Scientific name",
-        "monograph_active_compounds": "Active compounds",
-        "monograph_common_uses": "Common uses",
-        "monograph_potential_interactions": "Potential drug interactions",
-        "monograph_contraindications": "Contraindications",
-        "monograph_side_effects": "Possible side effects",
-        "monograph_traditional_preparation": "Traditional preparation",
-        "compound_search_title": "🔬 Search by Active Compound",
-        "compound_search_placeholder": "Choose a compound...",
-        "compound_pubchem": "PubChem",
-        "compound_class": "Class",
-        "compound_subclass": "Subclass",
-        "compound_found_in": "Found in these herbs:",
-    }
-else:
-    texts = {
-        "title": "🌿 Angalia Mwingiliano wa TCIM na Dawa za Kisasa",
-        "subtitle": "Tiba Asili, Mbadala na Jumuishi | Imeundwa Kenya 🇰🇪",
-        "drug_label": "💊 Dawa",
-        "drug_placeholder": "mfano: warfarin, metformin",
-        "herb_label": "🌿 Mmea / TCIM",
-        "herb_placeholder": "mfano: moringa, mwarobaini, neem",
-        "check_button": "🔍 Angalia",
-        "result_title": "📋 Matokeo",
-        "high_risk": "🚨🚨 HATARI KUBWA 🚨🚨",
-        "moderate_risk": "⚠️⚠️ HATARI YA KATI ⚠️⚠️",
-        "low_risk": "✅ HATARI NDOGO ✅",
-        "unknown_risk": "❓ HAIJULIKANI ❓",
-        "explanation": "Maelezo",
-        "recommendation": "Ushauri",
-        "mechanism": "🔬 Jinsi Inavyofanya Kazi",
-        "no_data_message": "Hatuna taarifa za",
-        "no_data_note": "Hii haimaanishi kuwa ni salama.",
-        "advice_1": "• Wasiliana na mfamasia au daktari",
-        "advice_2": "• Orodhesha dawa na mitishamba yote",
-        "advice_3": "• Anza kwa kiasi kidogo",
-        "advice_4": "• Piga 719 kwa dharura",
-        "view_common": "📚 Tazama Mwingiliano wa Kawaida",
-        "quick_search": "🔍 Tafuta Haraka",
-        "search_all": "🔎 Tafuta Zote",
-        "search_placeholder": "Tafuta kwa dawa au mmea...",
-        "found": "Yamepatikana {} mwingiliano",
-        "no_matches": "Hakuna matokeo",
-        "report_title": "📢 Ripoti Tatizo",
-        "report_question": "Kipi hakiko sawa?",
-        "report_button": "📤 Tuma Ripoti",
-        "report_thanks": "✅ Asante! Timu yetu itaangalia.",
-        "request_button": "📢 Omba mchanganyiko huu",
-        "disclaimer": "⚠️ Kwa taarifa tu. Sio ushauri wa kitabibu.",
-        "emergency": "🚨 DHARURA: 719 (Kenya Poison Control)",
-        "stats": "📊 Takwimu",
-        "about": "### Kuhusu Zana Hii",
-        "last_updated": "Ilisasishwa: Machi 2026",
-        "footer": "Imetengenezwa kwa ❤️ kwa Kenya",
-        "my_meds_title": "💊 Dawa Zangu",
-        "my_meds_add_label": "Ongeza dawa kwenye orodha yako",
-        "my_meds_add_placeholder": "Chagua dawa...",
-        "my_meds_current": "Dawa zako za sasa:",
-        "my_meds_remove": "Ondoa",
-        "my_meds_empty": "Hakuna dawa zilizohifadhiwa bado. Ongeza hapo juu.",
-        "my_meds_check_header": "🔍 Kuangalia dhidi ya dawa zako:",
-        "condition_title": "🔍 Tafuta kwa Hali ya Afya",
-        "condition_placeholder": "Chagua hali...",
-        "condition_drugs_header": "Dawa za kawaida kwa hali hii:",
-        "condition_herbs_header": "Mimea ya kuwa mwangalifu nayo:",
-        "condition_no_drugs": "Hakuna orodha maalum ya dawa kwa hali hii.",
-        "condition_no_herbs": "Hakuna tahadhari maalum za mimea kwa hali hii.",
-        "monograph_title": "🌿 Maelezo ya TCIM",
-        "monograph_select_placeholder": "Chagua mmea...",
-        "monograph_scientific_name": "Jina la kisayansi",
-        "monograph_active_compounds": "Vijenzi amilifu",
-        "monograph_common_uses": "Matumizi ya kawaida",
-        "monograph_potential_interactions": "Mwingiliano unaowezekana na dawa",
-        "monograph_contraindications": "Vikwazo",
-        "monograph_side_effects": "Madhara yanayowezekana",
-        "monograph_traditional_preparation": "Maandalizi ya kienyeji",
-        "compound_search_title": "🔬 Tafuta kwa Kiambato Amilifu",
-        "compound_search_placeholder": "Chagua kiambato...",
-        "compound_pubchem": "PubChem",
-        "compound_class": "Aina",
-        "compound_subclass": "Kikundi",
-        "compound_found_in": "Inapatikana katika mimea hii:",
-    }
-
 # Kenyan Flag Bar
 st.markdown('<div class="kenya-bar"></div>', unsafe_allow_html=True)
 
-# Header
-st.markdown(f"""
+# Header (common)
+st.markdown("""
     <div class="main-header">
-        <h1>{texts['title']}</h1>
-        <p>{texts['subtitle']}</p>
+        <h1>🌿 TCIM-Biomedicine Interaction Checker</h1>
+        <p>Traditional, Complementary & Integrative Medicine | Created in Kenya 🇰🇪</p>
     </div>
 """, unsafe_allow_html=True)
 
-if data:
-    all_drugs = sorted(list(set([item['drug'].title() for item in data if item['drug'] != "any"])))
-    all_herbs = sorted(list(set(aliases.keys()))) if aliases else []
+# ------------------------------------------------------------
+# Sidebar Navigation
+# ------------------------------------------------------------
+with st.sidebar:
+    st.image("https://img.icons8.com/color/96/000000/kenya.png", width=60)
+    st.markdown("### Navigation")
+    tab = st.radio(
+        "Go to",
+        ["🔍 Interaction Checker", "🌿 Condition Explorer", "📘 Learn", "📞 Feedback"],
+        index=["🔍 Interaction Checker", "🌿 Condition Explorer", "📘 Learn", "📞 Feedback"].index(st.session_state.active_tab),
+        label_visibility="collapsed"
+    )
+    st.session_state.active_tab = tab
 
-    # --------------------------------------------------------
-    # 1. My Meds Section
+    # Common sidebar content (emergency, stats, etc.)
+    st.markdown("""
+    <div class="emergency-button">
+        <p style="color: white; margin: 0; font-size: 1.2rem; font-weight: bold;">🚨 EMERGENCY</p>
+        <p style="color: white; margin: 0.5rem 0;">Kenya Poison Control</p>
+        <a href="tel:719">📞 719</a>
+        <p style="color: rgba(255,255,255,0.8); margin: 0.5rem 0; font-size: 0.9rem;">Free • 24/7</p>
+    </div>
+    """, unsafe_allow_html=True)
+    st.markdown("---")
+    st.markdown("### About This Tool")
+    st.markdown("• PubMed • Natural Medicines DB • Kenyan guides")
+    st.markdown("---")
+    st.markdown("**📊 Database Stats**")
+    if data:
+        valid_interactions = [x for x in data if x['drug'] != "any" and x.get('risk')]
+        if valid_interactions:
+            high_count = sum(1 for x in valid_interactions if x['risk'] == 'High')
+            moderate_count = sum(1 for x in valid_interactions if x['risk'] == 'Moderate')
+            low_count = sum(1 for x in valid_interactions if x['risk'] == 'Low')
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("🔴 High", high_count)
+            with col2:
+                st.metric("🟡 Moderate", moderate_count)
+            with col3:
+                st.metric("🟢 Low", low_count)
+            st.markdown(f"**Total:** {len(valid_interactions)} interactions")
+        else:
+            st.info("No interaction data")
+    else:
+        st.info("No data loaded")
+    st.markdown("---")
+    st.markdown("*Last Updated: March 2026*")
+
+# ------------------------------------------------------------
+# Interaction Checker Tab (Original functionality)
+# ------------------------------------------------------------
+if st.session_state.active_tab == "🔍 Interaction Checker":
+    # Language selection (keep inside tab)
+    col1, col2 = st.columns([3, 1])
+    with col2:
+        language = st.selectbox("🌐", ["English", "Kiswahili"])
+    if language == "English":
+        texts = {
+            "drug_label": "💊 Medication",
+            "drug_placeholder": "e.g., warfarin, metformin, tenofovir",
+            "herb_label": "🌿 Herb / TCIM",
+            "herb_placeholder": "e.g., moringa, mwarobaini, neem",
+            "check_button": "🔍 Check Interaction",
+            "high_risk": "🚨🚨 HIGH RISK 🚨🚨",
+            "moderate_risk": "⚠️⚠️ MODERATE RISK ⚠️⚠️",
+            "low_risk": "✅ LOW RISK ✅",
+            "unknown_risk": "❓ UNKNOWN ❓",
+            "explanation": "Explanation",
+            "recommendation": "Recommendation",
+            "mechanism": "🔬 Mechanism of Action",
+            "no_data_message": "No specific data for",
+            "no_data_note": "This does NOT mean the combination is safe.",
+            "advice_1": "• Consult a pharmacist or doctor",
+            "advice_2": "• Keep a list of all herbs and medications",
+            "advice_3": "• Start with small amounts",
+            "advice_4": "• Call 719 in emergency",
+            "view_common": "📚 View Common Interactions",
+            "quick_search": "🔍 Quick Search",
+            "search_all": "🔎 Search All",
+            "search_placeholder": "Search by drug or herb...",
+            "found": "Found {} interactions",
+            "no_matches": "No matches found",
+            "report_title": "📢 Report a Problem",
+            "report_question": "What's wrong?",
+            "report_button": "📤 Submit Report",
+            "report_thanks": "✅ Thank you! Our team will review.",
+            "request_button": "📢 Request this combination",
+            "my_meds_title": "💊 My Medications",
+            "my_meds_add_label": "Add a drug to your list",
+            "my_meds_add_placeholder": "Select a drug...",
+            "my_meds_current": "Your current medications:",
+            "my_meds_remove": "Remove",
+            "my_meds_empty": "No medications saved yet. Add some above.",
+            "my_meds_check_header": "🔍 Checking against your medications:",
+        }
+    else:
+        texts = {
+            "drug_label": "💊 Dawa",
+            "drug_placeholder": "mfano: warfarin, metformin",
+            "herb_label": "🌿 Mmea / TCIM",
+            "herb_placeholder": "mfano: moringa, mwarobaini, neem",
+            "check_button": "🔍 Angalia",
+            "high_risk": "🚨🚨 HATARI KUBWA 🚨🚨",
+            "moderate_risk": "⚠️⚠️ HATARI YA KATI ⚠️⚠️",
+            "low_risk": "✅ HATARI NDOGO ✅",
+            "unknown_risk": "❓ HAIJULIKANI ❓",
+            "explanation": "Maelezo",
+            "recommendation": "Ushauri",
+            "mechanism": "🔬 Jinsi Inavyofanya Kazi",
+            "no_data_message": "Hatuna taarifa za",
+            "no_data_note": "Hii haimaanishi kuwa ni salama.",
+            "advice_1": "• Wasiliana na mfamasia au daktari",
+            "advice_2": "• Orodhesha dawa na mitishamba yote",
+            "advice_3": "• Anza kwa kiasi kidogo",
+            "advice_4": "• Piga 719 kwa dharura",
+            "view_common": "📚 Tazama Mwingiliano wa Kawaida",
+            "quick_search": "🔍 Tafuta Haraka",
+            "search_all": "🔎 Tafuta Zote",
+            "search_placeholder": "Tafuta kwa dawa au mmea...",
+            "found": "Yamepatikana {} mwingiliano",
+            "no_matches": "Hakuna matokeo",
+            "report_title": "📢 Ripoti Tatizo",
+            "report_question": "Kipi hakiko sawa?",
+            "report_button": "📤 Tuma Ripoti",
+            "report_thanks": "✅ Asante! Timu yetu itaangalia.",
+            "request_button": "📢 Omba mchanganyiko huu",
+            "my_meds_title": "💊 Dawa Zangu",
+            "my_meds_add_label": "Ongeza dawa kwenye orodha yako",
+            "my_meds_add_placeholder": "Chagua dawa...",
+            "my_meds_current": "Dawa zako za sasa:",
+            "my_meds_remove": "Ondoa",
+            "my_meds_empty": "Hakuna dawa zilizohifadhiwa bado. Ongeza hapo juu.",
+            "my_meds_check_header": "🔍 Kuangalia dhidi ya dawa zako:",
+        }
+
+    # My Meds Section
     with st.expander(texts['my_meds_title']):
         col1, col2 = st.columns([3, 1])
         with col1:
             new_med = st.selectbox(
                 texts['my_meds_add_label'],
-                options=[""] + all_drugs,
+                options=[""] + sorted(list(set([item['drug'].title() for item in data if item['drug'] != "any"]))),
                 format_func=lambda x: x if x else texts['my_meds_add_placeholder'],
                 key="new_med_select",
                 label_visibility="collapsed"
@@ -632,199 +607,7 @@ if data:
         else:
             st.info(texts['my_meds_empty'])
 
-    # --------------------------------------------------------
-    # 2. Search by Condition Section (enhanced with bioactivity search)
-    with st.expander(texts['condition_title']):
-        if not conditions_data:
-            st.warning("Condition data not loaded.")
-        else:
-            condition_options = [""] + sorted(conditions_data.keys())
-            selected_condition_key = st.selectbox(
-                "Condition",
-                options=condition_options,
-                format_func=lambda x: conditions_data[x]['display_name'] if x else texts['condition_placeholder'],
-                key="condition_select",
-                label_visibility="collapsed"
-            )
-            if selected_condition_key:
-                condition = conditions_data[selected_condition_key]
-                st.markdown(f"**{texts['condition_drugs_header']}**")
-                if condition.get('drugs'):
-                    for drug in condition['drugs']:
-                        if st.button(f"💊 {drug.title()}", key=f"cond_drug_{drug}"):
-                            st.session_state.drug_select = drug.title()
-                            st.rerun()
-                else:
-                    st.info(texts['condition_no_drugs'])
-                st.markdown(f"**{texts['condition_herbs_header']}**")
-                if condition.get('herb_warnings'):
-                    for hw in condition['herb_warnings']:
-                        risk_color = "🔴" if hw['risk'] == "High" else "🟡" if hw['risk'] == "Moderate" else "🟢"
-                        st.markdown(f"""
-                        <div style="background: #f8f9fa; padding: 0.8rem; border-radius: 8px; margin: 0.5rem 0; border-left: 5px solid {'#c62828' if hw['risk']=='High' else '#ff8f00' if hw['risk']=='Moderate' else '#2e7d32'};">
-                            <b>{risk_color} {hw['herb'].title()}</b> – {hw['explanation']}<br>
-                            <small><i>Recommendation:</i> {hw['recommendation']}</small>
-                        </div>
-                        """, unsafe_allow_html=True)
-                else:
-                    st.info(texts['condition_no_herbs'])
-
-                # ========== NEW: Plants with bioactive compounds that may help ==========
-                st.markdown("### 🌿 Plants with bioactive compounds for this condition")
-                if species_data is None:
-                    st.info("Bioactive compound data is currently unavailable. We'll add it soon!")
-                else:
-                    condition_to_therapeutic = {
-                        "malaria": "Malaria",
-                        "diabetes": "Diabetes",
-                        "hypertension": "Hypertension",
-                        "high blood pressure": "Hypertension",
-                        "hiv": "HIV",
-                        "pregnancy": "Pregnancy",
-                        "liver disease": "Liver disease",
-                        "kidney disease": "Kidney disease",
-                        "bacterial infections": "Bacterial infections",
-                        "inflammation": "Inflammation",
-                        "cancer": "Cancer",
-                        "tuberculosis": "Tuberculosis",
-                        "oxidative stress": "Oxidative stress",
-                        "leishmaniasis": "Leishmaniasis",
-                        "trypanosomiasis": "Trypanosomiasis",
-                        "fungal infections": "Fungal infections",
-                    }
-                    display_name = condition['display_name'].lower()
-                    therapeutic = condition_to_therapeutic.get(display_name, None)
-                    if therapeutic and therapeutic in use_to_bios:
-                        target_bios = use_to_bios[therapeutic]
-                        if species_data:
-                            matching_species = []
-                            for sp, compounds in species_data.items():
-                                for comp in compounds:
-                                    if any(bio in target_bios for bio in comp['bioactivities']):
-                                        matching_species.append(sp)
-                                        break
-                            if matching_species:
-                                for sp in sorted(set(matching_species))[:20]:
-                                    with st.expander(f"🌱 {sp}"):
-                                        for comp in species_data[sp]:
-                                            relevant_bios = [b for b in comp['bioactivities'] if b in target_bios]
-                                            if relevant_bios:
-                                                st.markdown(f"**Compound:** {comp['compound']}")
-                                                st.markdown(f"**Bioactivities:** {', '.join(comp['bioactivities'])}")
-                                                if comp['pmids']:
-                                                    links = ", ".join(f"[{pmid}](https://pubmed.ncbi.nlm.nih.gov/{pmid}/)" for pmid in comp['pmids'])
-                                                    st.markdown(f"**References:** {links}")
-                                                st.markdown("---")
-                            else:
-                                st.info("No plants found with bioactive compounds for this condition.")
-                        else:
-                            st.info("Compound data not available.")
-                    else:
-                        st.info("No bioactive compound mapping available for this condition yet.")
-                # ================================================================
-
-    # --------------------------------------------------------
-    # 3. Herb Monograph Section (with compounds)
-    with st.expander(texts['monograph_title']):
-        if not monographs:
-            st.warning("Monograph data not loaded.")
-        else:
-            herb_options = [""] + sorted(monographs.keys())
-            selected_herb = st.selectbox(
-                "Herb",
-                options=herb_options,
-                format_func=lambda x: x.title() if x else texts['monograph_select_placeholder'],
-                key="monograph_select",
-                label_visibility="collapsed"
-            )
-            if selected_herb:
-                herb_data = monographs[selected_herb]
-                st.markdown(f"### {selected_herb.title()}")
-
-                if herb_data.get('scientific_name'):
-                    st.markdown(f"*{herb_data['scientific_name']}*")
-
-                col1, col2 = st.columns(2)
-
-                with col1:
-                    herb_comp_list = herb_compounds.get(selected_herb, [])
-                    if herb_comp_list:
-                        st.markdown(f"**{texts['monograph_active_compounds']}**")
-                        for compound in herb_comp_list:
-                            details = compound_details.get(compound, {})
-                            pubchem_id = details.get('pubchem_id')
-                            if pubchem_id and pubchem_id != '-':
-                                st.markdown(f"- [{compound}](https://pubchem.ncbi.nlm.nih.gov/compound/{pubchem_id})")
-                            else:
-                                st.markdown(f"- {compound}")
-
-                    if herb_data.get('common_uses'):
-                        st.markdown(f"**{texts['monograph_common_uses']}**")
-                        for use in herb_data['common_uses']:
-                            st.markdown(f"- {use}")
-
-                    if herb_data.get('potential_interactions'):
-                        st.markdown(f"**{texts['monograph_potential_interactions']}**")
-                        for drug in herb_data['potential_interactions']:
-                            if st.button(f"🔍 {drug.title()}", key=f"mono_drug_{selected_herb}_{drug}"):
-                                st.session_state.drug_select = drug.title()
-                                st.session_state.herb_select = selected_herb.title()
-                                st.rerun()
-
-                with col2:
-                    if herb_data.get('contraindications'):
-                        st.markdown(f"**{texts['monograph_contraindications']}**")
-                        for contra in herb_data['contraindications']:
-                            st.markdown(f"- {contra}")
-
-                    if herb_data.get('side_effects'):
-                        st.markdown(f"**{texts['monograph_side_effects']}**")
-                        for effect in herb_data['side_effects']:
-                            st.markdown(f"- {effect}")
-
-                    if herb_data.get('traditional_preparation'):
-                        st.markdown(f"**{texts['monograph_traditional_preparation']}**")
-                        st.markdown(herb_data['traditional_preparation'])
-
-    # --------------------------------------------------------
-    # 4. Compound Search Section
-    with st.expander(texts['compound_search_title']):
-        if not compound_details:
-            st.warning("Compound data not loaded.")
-        else:
-            compound_names = sorted(compound_details.keys())
-            selected_compound = st.selectbox(
-                "Compound",
-                options=[""] + compound_names,
-                format_func=lambda x: x if x else texts['compound_search_placeholder'],
-                key="compound_select",
-                label_visibility="collapsed"
-            )
-            if selected_compound:
-                comp = compound_details[selected_compound]
-                st.markdown(f"### {selected_compound}")
-
-                col1, col2 = st.columns(2)
-                with col1:
-                    if comp.get('pubchem_id') and comp['pubchem_id'] != '-':
-                        st.markdown(f"**{texts['compound_pubchem']}:** [{comp['pubchem_id']}](https://pubchem.ncbi.nlm.nih.gov/compound/{comp['pubchem_id']})")
-                    st.markdown(f"**{texts['compound_class']}:** {comp.get('class', 'N/A')}")
-                    st.markdown(f"**{texts['compound_subclass']}:** {comp.get('subclass', 'N/A')}")
-
-                with col2:
-                    containing_herbs = []
-                    for herb, compounds in herb_compounds.items():
-                        if selected_compound in compounds:
-                            containing_herbs.append(herb)
-                    if containing_herbs:
-                        st.markdown(f"**{texts['compound_found_in']}**")
-                        for herb in containing_herbs:
-                            if st.button(f"🌿 {herb.title()}", key=f"comp_to_herb_{herb}"):
-                                st.session_state.monograph_select = herb
-                                st.rerun()
-
-    # --------------------------------------------------------
-    # 5. Quick Search Chips
+    # Quick Search Chips
     st.markdown(f"### {texts['quick_search']}")
     quick_searches = [
         {"drug": "Warfarin", "herb": "mwarobaini", "risk": "High"},
@@ -836,37 +619,32 @@ if data:
     for i, search in enumerate(quick_searches):
         with cols[i]:
             risk_color = "🔴" if search['risk'] == "High" else "🟡"
-            button_key = f"chip_{i}_{search['drug']}_{search['herb']}"
-            if st.button(f"{risk_color} {search['drug']} + {search['herb']}", key=button_key):
-                if st.session_state.get('_last_chip') != button_key:
-                    st.session_state['_last_chip'] = button_key
-                    drug_lower = search['drug'].lower().strip()
-                    herb_canonical = get_canonical_name(search['herb'])
-                    result = None
+            if st.button(f"{risk_color} {search['drug']} + {search['herb']}", key=f"chip_{i}"):
+                st.session_state.last_drug = search['drug']
+                st.session_state.last_herb = search['herb']
+                herb_canonical = get_canonical_name(search['herb'])
+                result = None
+                for item in data:
+                    if item['drug'] == search['drug'].lower().strip() and item['herb'] == herb_canonical:
+                        result = item
+                        break
+                if not result:
                     for item in data:
-                        if item['drug'] == drug_lower and item['herb'] == herb_canonical:
+                        if item['drug'] == "any" and item['herb'] == herb_canonical:
                             result = item
                             break
-                    if not result:
-                        for item in data:
-                            if item['drug'] == "any" and item['herb'] == herb_canonical:
-                                result = item
-                                break
-                    st.session_state.last_drug = search['drug']
-                    st.session_state.last_herb = search['herb']
-                    st.session_state.last_result = result
-                    st.session_state.search_performed = True
-                    st.rerun()
+                st.session_state.last_result = result
+                st.session_state.search_performed = True
+                st.rerun()
 
-    # --------------------------------------------------------
-    # 6. Input Section
+    # Input Section
     st.markdown('<div class="glass-card">', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
         st.markdown(f"##### {texts['drug_label']}")
         drug_input = st.selectbox(
             "Select medication",
-            options=all_drugs,
+            options=sorted(list(set([item['drug'].title() for item in data if item['drug'] != "any"]))),
             index=None,
             placeholder=texts['drug_placeholder'],
             label_visibility="collapsed",
@@ -876,7 +654,7 @@ if data:
         st.markdown(f"##### {texts['herb_label']}")
         herb_input = st.selectbox(
             "Select herb",
-            options=all_herbs,
+            options=sorted(list(set(aliases.keys()))) if aliases else [],
             index=None,
             placeholder=texts['herb_placeholder'],
             label_visibility="collapsed",
@@ -884,15 +662,10 @@ if data:
         )
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # --------------------------------------------------------
-    # 7. Check Button
+    # Check Button
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        check_button = st.button(
-            texts['check_button'],
-            type="primary",
-            use_container_width=True
-        )
+        check_button = st.button(texts['check_button'], type="primary", use_container_width=True)
 
     if check_button:
         if not drug_input or not herb_input:
@@ -1015,8 +788,7 @@ if data:
             if not found_any:
                 st.info(f"No known interactions found between {herb_display} and your other medications.")
 
-    # --------------------------------------------------------
-    # 8. Quick Reference & Search
+    # Quick Reference & Search
     with st.expander(texts['view_common']):
         df_data = []
         for item in data[:10]:
@@ -1052,55 +824,293 @@ if data:
             st.info(texts['no_matches'])
 
 # ------------------------------------------------------------
-# Sidebar
-with st.sidebar:
-    st.image("https://img.icons8.com/color/96/000000/kenya.png", width=60)
-    st.markdown(texts['about'])
-    st.markdown("• PubMed • Natural Medicines DB • Kenyan guides")
-    st.markdown("""
-    <div class="emergency-button">
-        <p style="color: white; margin: 0; font-size: 1.2rem; font-weight: bold;">🚨 EMERGENCY</p>
-        <p style="color: white; margin: 0.5rem 0;">Kenya Poison Control</p>
-        <a href="tel:719">📞 719</a>
-        <p style="color: rgba(255,255,255,0.8); margin: 0.5rem 0; font-size: 0.9rem;">Free • 24/7</p>
-    </div>
-    """, unsafe_allow_html=True)
-    st.markdown("---")
-    st.markdown(f"**{texts['stats']}**")
-    if data:
-        valid_interactions = [x for x in data if x['drug'] != "any" and x.get('risk')]
-        if valid_interactions:
-            high_count = sum(1 for x in valid_interactions if x['risk'] == 'High')
-            moderate_count = sum(1 for x in valid_interactions if x['risk'] == 'Moderate')
-            low_count = sum(1 for x in valid_interactions if x['risk'] == 'Low')
-            total = len(valid_interactions)
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("🔴 High", high_count)
-            with col2:
-                st.metric("🟡 Moderate", moderate_count)
-            with col3:
-                st.metric("🟢 Low", low_count)
-            st.markdown(f"**Total:** {total} interactions")
-            st.markdown("**Risk Distribution:**")
-            if high_count > 0:
-                st.markdown(f"🔴 High: {'█' * high_count} ({high_count})")
-            if moderate_count > 0:
-                st.markdown(f"🟡 Moderate: {'█' * moderate_count} ({moderate_count})")
-            if low_count > 0:
-                st.markdown(f"🟢 Low: {'█' * low_count} ({low_count})")
-        else:
-            st.info("No interaction data")
-    else:
-        st.info("No data loaded")
-    st.markdown("---")
-    st.markdown(f"*{texts['last_updated']}*")
+# Condition Explorer Tab (NEW)
+# ------------------------------------------------------------
+elif st.session_state.active_tab == "🌿 Condition Explorer":
+    # Hardcoded condition-herb data for MVP (can be moved to a JSON file later)
+    condition_data = {
+        "Malaria": {
+            "overview": "Parasitic infection transmitted by mosquitoes, common in Kenya.",
+            "standard_treatment": "Artemisinin-based Combination Therapy (ACTs)",
+            "clinical_note": "Herbal options may support symptoms but are NOT first-line treatment.",
+            "herbs": [
+                {
+                    "name": "Artemisia annua",
+                    "use": "Fever, malaria-like symptoms",
+                    "evidence": "Moderate",
+                    "mechanism": "Contains artemisinin compounds active against parasites",
+                    "safety": "Not a substitute for ACTs. Risk of resistance if used improperly."
+                },
+                {
+                    "name": "Neem (Azadirachta indica)",
+                    "use": "Antipyretic, immune support",
+                    "evidence": "Limited",
+                    "mechanism": "Contains compounds with antimalarial activity in lab studies",
+                    "safety": "Avoid during pregnancy; may lower blood sugar."
+                },
+                {
+                    "name": "Mwarobaini (Azadirachta indica)",
+                    "use": "General tonic, fever",
+                    "evidence": "Limited",
+                    "mechanism": "Similar to neem; some antiplasmodial activity",
+                    "safety": "May interact with antidiabetic and anticoagulant drugs."
+                }
+            ]
+        },
+        "Diabetes": {
+            "overview": "Chronic condition affecting blood sugar regulation.",
+            "standard_treatment": "Metformin, insulin, lifestyle changes",
+            "clinical_note": "Herbal supplements can affect blood sugar and interact with medications.",
+            "herbs": [
+                {
+                    "name": "Moringa (Moringa oleifera)",
+                    "use": "Blood sugar management",
+                    "evidence": "Moderate",
+                    "mechanism": "Contains isothiocyanates that may improve insulin sensitivity",
+                    "safety": "May lower blood sugar; monitor closely if on antidiabetic drugs."
+                },
+                {
+                    "name": "Aloe vera",
+                    "use": "Wound healing, blood sugar",
+                    "evidence": "Limited",
+                    "mechanism": "May have hypoglycemic effects",
+                    "safety": "Can interact with oral diabetes medications."
+                }
+            ]
+        },
+        "Ulcers": {
+            "overview": "Open sores in the stomach lining or upper intestine.",
+            "standard_treatment": "Proton pump inhibitors, antibiotics if H. pylori",
+            "clinical_note": "Some herbs may aggravate ulcers or interfere with healing.",
+            "herbs": [
+                {
+                    "name": "Licorice (Glycyrrhiza glabra)",
+                    "use": "Soothes digestive tract",
+                    "evidence": "Moderate",
+                    "mechanism": "May increase mucus production, protect stomach lining",
+                    "safety": "Can raise blood pressure; avoid in hypertension."
+                },
+                {
+                    "name": "Honey (local)",
+                    "use": "Soothing, antimicrobial",
+                    "evidence": "Limited",
+                    "mechanism": "Natural antibacterial properties",
+                    "safety": "Generally safe but may increase blood sugar."
+                }
+            ]
+        },
+        "Hypertension": {
+            "overview": "High blood pressure, a risk factor for heart disease and stroke.",
+            "standard_treatment": "ACE inhibitors, calcium channel blockers, lifestyle changes",
+            "clinical_note": "Some herbs can lower blood pressure and interact with medications.",
+            "herbs": [
+                {
+                    "name": "Garlic (Allium sativum)",
+                    "use": "Mild blood pressure reduction",
+                    "evidence": "Moderate",
+                    "mechanism": "May increase nitric oxide, relax blood vessels",
+                    "safety": "Can increase bleeding risk; avoid with anticoagulants."
+                },
+                {
+                    "name": "Hibiscus (Hibiscus sabdariffa)",
+                    "use": "Blood pressure management",
+                    "evidence": "Moderate",
+                    "mechanism": "Diuretic, ACE-inhibitor-like effects",
+                    "safety": "May interact with diuretics and antihypertensive drugs."
+                }
+            ]
+        }
+    }
 
-# Footer
+    # Helper to get color for evidence level
+    def evidence_color(level):
+        if level.lower() == "strong":
+            return "🟢"
+        elif level.lower() == "moderate":
+            return "🟡"
+        else:
+            return "🔴"
+
+    # Header for Condition Explorer
+    st.markdown("## 🌿 Condition-Based Herbal & TCIM Options")
+    st.markdown("Explore locally used herbal and integrative options — with safety guidance.")
+    st.info("⚠️ This tool does NOT replace medical treatment. Always confirm diagnosis.")
+
+    # Search input and popular chips
+    search_condition = st.text_input("🔎 Search condition", placeholder="e.g., Malaria, Diabetes, Ulcers", label_visibility="collapsed")
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        if st.button("Malaria"):
+            search_condition = "Malaria"
+    with col2:
+        if st.button("Diabetes"):
+            search_condition = "Diabetes"
+    with col3:
+        if st.button("Ulcers"):
+            search_condition = "Ulcers"
+    with col4:
+        if st.button("Hypertension"):
+            search_condition = "Hypertension"
+
+    # Normalize input
+    selected_condition = None
+    if search_condition:
+        for key in condition_data.keys():
+            if key.lower() == search_condition.lower():
+                selected_condition = key
+                break
+
+    if selected_condition:
+        cond = condition_data[selected_condition]
+
+        # Condition overview card
+        st.markdown(f"""
+        <div style="background: #f0f9f0; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
+            <h3>🟩 CONDITION: {selected_condition}</h3>
+            <p><strong>📌 Overview:</strong> {cond['overview']}</p>
+            <p><strong>🏥 Standard Treatment:</strong> {cond['standard_treatment']}</p>
+            <p><strong>⚠️ Clinical Note:</strong> {cond['clinical_note']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Herbal Options Section
+        st.markdown("### 🌿 Common Local Herbal Options")
+        # 2-column layout for herb cards
+        cols = st.columns(2)
+        for idx, herb in enumerate(cond['herbs']):
+            with cols[idx % 2]:
+                st.markdown(f"""
+                <div style="background: white; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e0e0e0;">
+                    <h4 style="margin-top:0;">🌿 {herb['name']}</h4>
+                    <p><strong>🧾 Traditional Use:</strong> {herb['use']}</p>
+                    <p><strong>🧪 Evidence Level:</strong> {evidence_color(herb['evidence'])} {herb['evidence']}</p>
+                    <p><strong>⚙️ Mechanism:</strong> {herb['mechanism']}</p>
+                    <p><strong>⚠️ Safety Notes:</strong> {herb['safety']}</p>
+                </div>
+                """, unsafe_allow_html=True)
+                # Button to check interaction with this herb
+                if st.button(f"🔍 Check Drug Interaction", key=f"check_{selected_condition}_{idx}"):
+                    st.session_state.last_herb = herb['name']
+                    st.session_state.active_tab = "🔍 Interaction Checker"
+                    st.rerun()
+
+        # Critical Safety Block
+        st.markdown("""
+        <div style="background: #ffefef; border-left: 5px solid #c62828; border-radius: 8px; padding: 1rem; margin: 1rem 0;">
+            <h4 style="margin:0 0 0.5rem 0;">🚨 IMPORTANT SAFETY INFORMATION</h4>
+            <p>• Herbal remedies are supportive, not curative for serious conditions.<br>
+            • Always seek diagnosis before treatment.<br>
+            • Some herbs interact with medications.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        # Bridge button
+        if st.button("🔄 Check interactions before use", use_container_width=True):
+            st.session_state.active_tab = "🔍 Interaction Checker"
+            st.rerun()
+
+        # Educational snippet
+        with st.expander("📘 Did You Know?"):
+            st.markdown("""
+            Some herbal compounds (e.g., artemisinin from *Artemisia annua*) have been developed into modern medicines.
+            
+            ⚠️ However, dosage, formulation, and resistance differ significantly. Always consult a healthcare professional.
+            """)
+    else:
+        if search_condition:
+            st.warning(f"Condition '{search_condition}' not found. Please try Malaria, Diabetes, Ulcers, or Hypertension.")
+        else:
+            st.info("🔍 Search for a condition to explore herbal options")
+
+# ------------------------------------------------------------
+# Learn Tab (Placeholder)
+# ------------------------------------------------------------
+elif st.session_state.active_tab == "📘 Learn":
+    st.markdown("## 📘 Educational Resources")
+    st.markdown("### Herb Monographs")
+    # Reuse existing herb monographs expander?
+    if monographs:
+        herb_options = [""] + sorted(monographs.keys())
+        selected_herb = st.selectbox(
+            "Select an herb to learn more",
+            options=herb_options,
+            format_func=lambda x: x.title() if x else "Choose an herb...",
+            key="learn_herb_select"
+        )
+        if selected_herb:
+            herb_data = monographs[selected_herb]
+            st.markdown(f"### {selected_herb.title()}")
+            if herb_data.get('scientific_name'):
+                st.markdown(f"*{herb_data['scientific_name']}*")
+            if herb_data.get('common_uses'):
+                st.markdown("**Common uses:**")
+                for use in herb_data['common_uses']:
+                    st.markdown(f"- {use}")
+            if herb_data.get('potential_interactions'):
+                st.markdown("**Potential drug interactions:**")
+                for drug in herb_data['potential_interactions']:
+                    st.markdown(f"- {drug}")
+            if herb_data.get('contraindications'):
+                st.markdown("**Contraindications:**")
+                for contra in herb_data['contraindications']:
+                    st.markdown(f"- {contra}")
+            if herb_data.get('side_effects'):
+                st.markdown("**Possible side effects:**")
+                for effect in herb_data['side_effects']:
+                    st.markdown(f"- {effect}")
+            if herb_data.get('traditional_preparation'):
+                st.markdown("**Traditional preparation:**")
+                st.markdown(herb_data['traditional_preparation'])
+    else:
+        st.info("Monograph data not loaded.")
+
+    st.markdown("### Active Compound Search")
+    if compound_details:
+        compound_names = sorted(compound_details.keys())
+        selected_compound = st.selectbox(
+            "Search for a compound",
+            options=[""] + compound_names,
+            format_func=lambda x: x if x else "Choose a compound...",
+            key="learn_compound_select"
+        )
+        if selected_compound:
+            comp = compound_details[selected_compound]
+            st.markdown(f"### {selected_compound}")
+            if comp.get('pubchem_id') and comp['pubchem_id'] != '-':
+                st.markdown(f"**PubChem:** [{comp['pubchem_id']}](https://pubchem.ncbi.nlm.nih.gov/compound/{comp['pubchem_id']})")
+            st.markdown(f"**Class:** {comp.get('class', 'N/A')}")
+            st.markdown(f"**Subclass:** {comp.get('subclass', 'N/A')}")
+            # Show herbs containing this compound
+            containing_herbs = [herb for herb, compounds in herb_compounds.items() if selected_compound in compounds]
+            if containing_herbs:
+                st.markdown("**Found in these herbs:**")
+                for herb in containing_herbs:
+                    st.markdown(f"- {herb.title()}")
+    else:
+        st.info("Compound data not loaded.")
+
+# ------------------------------------------------------------
+# Feedback Tab (Placeholder)
+# ------------------------------------------------------------
+elif st.session_state.active_tab == "📞 Feedback":
+    st.markdown("## 📞 Feedback")
+    st.markdown("We value your input. Please share your thoughts or report any issues.")
+    feedback_name = st.text_input("Your name (optional)")
+    feedback_email = st.text_input("Your email (optional)")
+    feedback_message = st.text_area("Message", height=150)
+    if st.button("Send Feedback", use_container_width=True):
+        if feedback_message.strip():
+            st.success("Thank you for your feedback! We'll review it shortly.")
+            # In a real app, you'd send this to an email or database.
+        else:
+            st.warning("Please enter a message.")
+
+# ------------------------------------------------------------
+# Footer (common)
+# ------------------------------------------------------------
 st.markdown(f"""
     <div class="footer">
-        <p>⚠️ {texts['disclaimer']}</p>
-        <p>{texts['emergency']}</p>
-        <p style="margin-top: 1rem;">❤️ {texts['footer']}</p>
+        <p>⚠️ For informational purposes only. Not medical advice.</p>
+        <p>🚨 EMERGENCY: 719 (Kenya Poison Control)</p>
+        <p style="margin-top: 1rem;">❤️ Made with ❤️ for Kenya</p>
     </div>
 """, unsafe_allow_html=True)
