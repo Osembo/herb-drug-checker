@@ -29,6 +29,7 @@ if 'my_meds' not in st.session_state:
 
 # ------------------------------------------------------------
 # Data loading functions
+# ------------------------------------------------------------
 @st.cache_data
 def load_data():
     try:
@@ -62,25 +63,22 @@ def load_monographs():
         return {}
 
 @st.cache_data
-def load_compounds_excel():
-    """Load and process the Kenyan compounds Excel file for bioactivity search."""
+def load_compounds():
     try:
-        # Try to import openpyxl; if not installed, return None
-        import openpyxl
-    except ImportError:
-        st.warning("openpyxl is required to read Excel files. Please install it: pip install openpyxl")
-        return None
-    try:
-        data_path = Path(__file__).parent / 'kenyan_compounds.xlsx'
-        df = pd.read_excel(data_path, sheet_name='molecules (1)')
-        # ... rest of processing
-    except Exception as e:
-        st.warning(f"Could not load compounds Excel: {e}")
-        return None
-        
+        with open('compounds.json', 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {"compounds": {}, "herb_compounds": {}}
+
 @st.cache_data
 def load_compounds_excel():
     """Load and process the Kenyan compounds Excel file for bioactivity search."""
+    try:
+        import openpyxl  # check if installed
+    except ImportError:
+        st.warning("Missing openpyxl. Please install it: pip install openpyxl")
+        return None
+
     try:
         data_path = Path(__file__).parent / 'kenyan_compounds.xlsx'
         df = pd.read_excel(data_path, sheet_name='molecules (1)')
@@ -110,7 +108,8 @@ def load_compounds_excel():
         return None
 
 # ------------------------------------------------------------
-# Helper functions (defined before use)
+# Helper functions (do not depend on loaded data)
+# ------------------------------------------------------------
 def normalize_data(data):
     """Convert old Excel‑style data to standard format."""
     normalized = []
@@ -144,17 +143,6 @@ def normalize_data(data):
             continue
     return normalized
 
-def get_canonical_name(search_term):
-    if not search_term:
-        return search_term
-    search_lower = search_term.lower().strip()
-    if search_lower in aliases:
-        return search_lower
-    for canonical, alias_list in aliases.items():
-        if search_lower in [a.lower() for a in alias_list]:
-            return canonical
-    return search_lower
-
 def save_report(drug, herb, current_risk, reason, details):
     report = {
         "timestamp": str(datetime.datetime.now()),
@@ -175,6 +163,35 @@ def save_report(drug, herb, current_risk, reason, details):
     with open("reports.json", "w") as f:
         json.dump(reports, f, indent=2)
     st.session_state.report_submitted = True
+
+# ------------------------------------------------------------
+# Load data that does not depend on helper functions
+# ------------------------------------------------------------
+raw_data = load_data()
+data = normalize_data(raw_data)
+aliases = load_aliases()
+conditions_data = load_conditions()
+monographs = load_monographs()
+compounds_data = load_compounds()
+herb_compounds = compounds_data.get('herb_compounds', {})
+compound_details = compounds_data.get('compounds', {})
+
+# Load compounds Excel with caching
+species_data = load_compounds_excel()   # will be None if missing
+
+# ------------------------------------------------------------
+# Helper functions that depend on loaded data (aliases)
+# ------------------------------------------------------------
+def get_canonical_name(search_term):
+    if not search_term:
+        return search_term
+    search_lower = search_term.lower().strip()
+    if search_lower in aliases:
+        return search_lower
+    for canonical, alias_list in aliases.items():
+        if search_lower in [a.lower() for a in alias_list]:
+            return canonical
+    return search_lower
 
 # Bioactivity mapping (used later)
 bio_to_use = {
@@ -198,25 +215,8 @@ for bio, use in bio_to_use.items():
     use_to_bios.setdefault(use, []).append(bio)
 
 # ------------------------------------------------------------
-# Load all data once (now all helpers are defined)
-raw_data = load_data()
-data = normalize_data(raw_data)
-aliases = load_aliases()
-conditions_data = load_conditions()
-monographs = load_monographs()
-compounds_data = load_compounds()
-herb_compounds = compounds_data.get('herb_compounds', {})
-compound_details = compounds_data.get('compounds', {})
-
-# Load compounds Excel with caching
-species_data = load_compounds_excel()   # will be None if file missing
-
+# CSS and UI (unchanged from original)
 # ------------------------------------------------------------
-# The rest of the code (CSS, language, UI sections) remains exactly the same
-# as in the previous version, so I'm omitting it here for brevity.
-# But you can copy the full code from the previous answer and replace the
-# top part with this corrected order.
-# ---------- CSS ----------
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -488,6 +488,7 @@ if language == "English":
         "about": "### About This Tool",
         "last_updated": "Last Updated: March 2026",
         "footer": "Made with ❤️ for Kenya",
+        # My Meds
         "my_meds_title": "💊 My Medications",
         "my_meds_add_label": "Add a drug to your list",
         "my_meds_add_placeholder": "Select a drug...",
@@ -495,12 +496,14 @@ if language == "English":
         "my_meds_remove": "Remove",
         "my_meds_empty": "No medications saved yet. Add some above.",
         "my_meds_check_header": "🔍 Checking against your medications:",
+        # Condition search
         "condition_title": "🔍 Search by Condition",
         "condition_placeholder": "Select a condition...",
         "condition_drugs_header": "Common medications for this condition:",
         "condition_herbs_header": "Herbs to be cautious with:",
         "condition_no_drugs": "No specific drug list for this condition.",
         "condition_no_herbs": "No specific herb warnings for this condition.",
+        # Herb monograph
         "monograph_title": "🌿 TCIM Monograph",
         "monograph_select_placeholder": "Select an herb...",
         "monograph_scientific_name": "Scientific name",
@@ -510,6 +513,7 @@ if language == "English":
         "monograph_contraindications": "Contraindications",
         "monograph_side_effects": "Possible side effects",
         "monograph_traditional_preparation": "Traditional preparation",
+        # Compound search
         "compound_search_title": "🔬 Search by Active Compound",
         "compound_search_placeholder": "Choose a compound...",
         "compound_pubchem": "PubChem",
@@ -557,6 +561,7 @@ else:
         "about": "### Kuhusu Zana Hii",
         "last_updated": "Ilisasishwa: Machi 2026",
         "footer": "Imetengenezwa kwa ❤️ kwa Kenya",
+        # My Meds
         "my_meds_title": "💊 Dawa Zangu",
         "my_meds_add_label": "Ongeza dawa kwenye orodha yako",
         "my_meds_add_placeholder": "Chagua dawa...",
@@ -564,12 +569,14 @@ else:
         "my_meds_remove": "Ondoa",
         "my_meds_empty": "Hakuna dawa zilizohifadhiwa bado. Ongeza hapo juu.",
         "my_meds_check_header": "🔍 Kuangalia dhidi ya dawa zako:",
+        # Condition search
         "condition_title": "🔍 Tafuta kwa Hali ya Afya",
         "condition_placeholder": "Chagua hali...",
         "condition_drugs_header": "Dawa za kawaida kwa hali hii:",
         "condition_herbs_header": "Mimea ya kuwa mwangalifu nayo:",
         "condition_no_drugs": "Hakuna orodha maalum ya dawa kwa hali hii.",
         "condition_no_herbs": "Hakuna tahadhari maalum za mimea kwa hali hii.",
+        # Herb monograph
         "monograph_title": "🌿 Maelezo ya TCIM",
         "monograph_select_placeholder": "Chagua mmea...",
         "monograph_scientific_name": "Jina la kisayansi",
@@ -579,6 +586,7 @@ else:
         "monograph_contraindications": "Vikwazo",
         "monograph_side_effects": "Madhara yanayowezekana",
         "monograph_traditional_preparation": "Maandalizi ya kienyeji",
+        # Compound search
         "compound_search_title": "🔬 Tafuta kwa Kiambato Amilifu",
         "compound_search_placeholder": "Chagua kiambato...",
         "compound_pubchem": "PubChem",
