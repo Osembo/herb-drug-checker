@@ -108,7 +108,7 @@ def load_compounds_excel():
         return None
 
 # ------------------------------------------------------------
-# Helper functions (do not depend on loaded data)
+# Helper functions
 # ------------------------------------------------------------
 def normalize_data(data):
     """Convert old Excel‑style data to standard format."""
@@ -165,7 +165,7 @@ def save_report(drug, herb, current_risk, reason, details):
     st.session_state.report_submitted = True
 
 # ------------------------------------------------------------
-# Load data that does not depend on helper functions
+# Load data
 # ------------------------------------------------------------
 raw_data = load_data()
 data = normalize_data(raw_data)
@@ -177,10 +177,10 @@ herb_compounds = compounds_data.get('herb_compounds', {})
 compound_details = compounds_data.get('compounds', {})
 
 # Load compounds Excel with caching
-species_data = load_compounds_excel()   # will be None if missing
+species_data = load_compounds_excel()
 
 # ------------------------------------------------------------
-# Helper functions that depend on loaded data (aliases)
+# Functions that depend on loaded aliases
 # ------------------------------------------------------------
 def get_canonical_name(search_term):
     if not search_term:
@@ -193,7 +193,7 @@ def get_canonical_name(search_term):
             return canonical
     return search_lower
 
-# Bioactivity mapping (used later)
+# Bioactivity mapping
 bio_to_use = {
     'anti-plasmodial': 'Malaria',
     'antibacterial': 'Bacterial infections',
@@ -215,7 +215,7 @@ for bio, use in bio_to_use.items():
     use_to_bios.setdefault(use, []).append(bio)
 
 # ------------------------------------------------------------
-# CSS and UI (unchanged from original)
+# CSS and UI
 # ------------------------------------------------------------
 st.markdown("""
 <style>
@@ -488,7 +488,6 @@ if language == "English":
         "about": "### About This Tool",
         "last_updated": "Last Updated: March 2026",
         "footer": "Made with ❤️ for Kenya",
-        # My Meds
         "my_meds_title": "💊 My Medications",
         "my_meds_add_label": "Add a drug to your list",
         "my_meds_add_placeholder": "Select a drug...",
@@ -496,14 +495,12 @@ if language == "English":
         "my_meds_remove": "Remove",
         "my_meds_empty": "No medications saved yet. Add some above.",
         "my_meds_check_header": "🔍 Checking against your medications:",
-        # Condition search
         "condition_title": "🔍 Search by Condition",
         "condition_placeholder": "Select a condition...",
         "condition_drugs_header": "Common medications for this condition:",
         "condition_herbs_header": "Herbs to be cautious with:",
         "condition_no_drugs": "No specific drug list for this condition.",
         "condition_no_herbs": "No specific herb warnings for this condition.",
-        # Herb monograph
         "monograph_title": "🌿 TCIM Monograph",
         "monograph_select_placeholder": "Select an herb...",
         "monograph_scientific_name": "Scientific name",
@@ -513,7 +510,6 @@ if language == "English":
         "monograph_contraindications": "Contraindications",
         "monograph_side_effects": "Possible side effects",
         "monograph_traditional_preparation": "Traditional preparation",
-        # Compound search
         "compound_search_title": "🔬 Search by Active Compound",
         "compound_search_placeholder": "Choose a compound...",
         "compound_pubchem": "PubChem",
@@ -561,7 +557,6 @@ else:
         "about": "### Kuhusu Zana Hii",
         "last_updated": "Ilisasishwa: Machi 2026",
         "footer": "Imetengenezwa kwa ❤️ kwa Kenya",
-        # My Meds
         "my_meds_title": "💊 Dawa Zangu",
         "my_meds_add_label": "Ongeza dawa kwenye orodha yako",
         "my_meds_add_placeholder": "Chagua dawa...",
@@ -569,14 +564,12 @@ else:
         "my_meds_remove": "Ondoa",
         "my_meds_empty": "Hakuna dawa zilizohifadhiwa bado. Ongeza hapo juu.",
         "my_meds_check_header": "🔍 Kuangalia dhidi ya dawa zako:",
-        # Condition search
         "condition_title": "🔍 Tafuta kwa Hali ya Afya",
         "condition_placeholder": "Chagua hali...",
         "condition_drugs_header": "Dawa za kawaida kwa hali hii:",
         "condition_herbs_header": "Mimea ya kuwa mwangalifu nayo:",
         "condition_no_drugs": "Hakuna orodha maalum ya dawa kwa hali hii.",
         "condition_no_herbs": "Hakuna tahadhari maalum za mimea kwa hali hii.",
-        # Herb monograph
         "monograph_title": "🌿 Maelezo ya TCIM",
         "monograph_select_placeholder": "Chagua mmea...",
         "monograph_scientific_name": "Jina la kisayansi",
@@ -586,7 +579,6 @@ else:
         "monograph_contraindications": "Vikwazo",
         "monograph_side_effects": "Madhara yanayowezekana",
         "monograph_traditional_preparation": "Maandalizi ya kienyeji",
-        # Compound search
         "compound_search_title": "🔬 Tafuta kwa Kiambato Amilifu",
         "compound_search_placeholder": "Chagua kiambato...",
         "compound_pubchem": "PubChem",
@@ -619,7 +611,8 @@ if data:
                 texts['my_meds_add_label'],
                 options=[""] + all_drugs,
                 format_func=lambda x: x if x else texts['my_meds_add_placeholder'],
-                key="new_med_select"
+                key="new_med_select",
+                label_visibility="collapsed"
             )
         with col2:
             if st.button("➕ Add", use_container_width=True):
@@ -647,10 +640,11 @@ if data:
         else:
             condition_options = [""] + sorted(conditions_data.keys())
             selected_condition_key = st.selectbox(
-                "",
+                "Condition",
                 options=condition_options,
                 format_func=lambda x: conditions_data[x]['display_name'] if x else texts['condition_placeholder'],
-                key="condition_select"
+                key="condition_select",
+                label_visibility="collapsed"
             )
             if selected_condition_key:
                 condition = conditions_data[selected_condition_key]
@@ -677,11 +671,9 @@ if data:
 
                 # ========== NEW: Plants with bioactive compounds that may help ==========
                 st.markdown("### 🌿 Plants with bioactive compounds for this condition")
-                # Check if species_data is available (Excel loaded)
                 if species_data is None:
                     st.info("Bioactive compound data is currently unavailable. We'll add it soon!")
                 else:
-                    # Map condition to a therapeutic term
                     condition_to_therapeutic = {
                         "malaria": "Malaria",
                         "diabetes": "Diabetes",
@@ -739,10 +731,11 @@ if data:
         else:
             herb_options = [""] + sorted(monographs.keys())
             selected_herb = st.selectbox(
-                "",
+                "Herb",
                 options=herb_options,
                 format_func=lambda x: x.title() if x else texts['monograph_select_placeholder'],
-                key="monograph_select"
+                key="monograph_select",
+                label_visibility="collapsed"
             )
             if selected_herb:
                 herb_data = monographs[selected_herb]
@@ -754,7 +747,6 @@ if data:
                 col1, col2 = st.columns(2)
 
                 with col1:
-                    # Active compounds from ANPDB
                     herb_comp_list = herb_compounds.get(selected_herb, [])
                     if herb_comp_list:
                         st.markdown(f"**{texts['monograph_active_compounds']}**")
@@ -802,10 +794,11 @@ if data:
         else:
             compound_names = sorted(compound_details.keys())
             selected_compound = st.selectbox(
-                "",
+                "Compound",
                 options=[""] + compound_names,
                 format_func=lambda x: x if x else texts['compound_search_placeholder'],
-                key="compound_select"
+                key="compound_select",
+                label_visibility="collapsed"
             )
             if selected_compound:
                 comp = compound_details[selected_compound]
@@ -871,21 +864,35 @@ if data:
     col1, col2 = st.columns(2)
     with col1:
         st.markdown(f"##### {texts['drug_label']}")
-        drug_input = st.selectbox("", options=all_drugs, index=None,
-                                  placeholder=texts['drug_placeholder'],
-                                  label_visibility="collapsed", key="drug_select")
+        drug_input = st.selectbox(
+            "Select medication",
+            options=all_drugs,
+            index=None,
+            placeholder=texts['drug_placeholder'],
+            label_visibility="collapsed",
+            key="drug_select"
+        )
     with col2:
         st.markdown(f"##### {texts['herb_label']}")
-        herb_input = st.selectbox("", options=all_herbs, index=None,
-                                  placeholder=texts['herb_placeholder'],
-                                  label_visibility="collapsed", key="herb_select")
+        herb_input = st.selectbox(
+            "Select herb",
+            options=all_herbs,
+            index=None,
+            placeholder=texts['herb_placeholder'],
+            label_visibility="collapsed",
+            key="herb_select"
+        )
     st.markdown('</div>', unsafe_allow_html=True)
 
     # --------------------------------------------------------
     # 7. Check Button
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        check_button = st.button(texts['check_button'], type="primary", use_container_width=True)
+        check_button = st.button(
+            texts['check_button'],
+            type="primary",
+            use_container_width=True
+        )
 
     if check_button:
         if not drug_input or not herb_input:
@@ -1025,7 +1032,11 @@ if data:
             st.dataframe(df, use_container_width=True)
 
     st.markdown(f"### {texts['search_all']}")
-    search = st.text_input("", placeholder=texts['search_placeholder'], label_visibility="collapsed")
+    search = st.text_input(
+        "Search",
+        placeholder=texts['search_placeholder'],
+        label_visibility="collapsed"
+    )
     if search:
         search_lower = search.lower()
         results = []
