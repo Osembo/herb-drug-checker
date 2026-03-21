@@ -98,31 +98,22 @@ def load_compounds_excel():
         return species_data
     except Exception as e:
         st.warning(f"Could not load compounds Excel: {e}")
-        return {}
+        return None
 
-# Bioactivity -> therapeutic use mapping
-bio_to_use = {
-    'anti-plasmodial': 'Malaria',
-    'antibacterial': 'Bacterial infections',
-    'antifungal': 'Fungal infections',
-    'antimalarial': 'Malaria',
-    'cytotoxic': 'Cancer',
-    'antioxidant': 'Oxidative stress',
-    'anti-inflammatory': 'Inflammation',
-    'antileishmanial': 'Leishmaniasis',
-    'antitrypanosomal': 'Trypanosomiasis',
-    'antimycobacterial': 'Tuberculosis',
-    'larvicidal': 'Mosquito control',
-    'radical scavenging': 'Oxidative stress',
-    'antimicrobial': 'Microbial infections',
-    'insect repellent': 'Insect repellent',
-}
+# ---------- Load all data once ----------
+raw_data = load_data()
+data = normalize_data(raw_data)   # normalize_data defined later
+aliases = load_aliases()
+conditions_data = load_conditions()
+monographs = load_monographs()
+compounds_data = load_compounds()
+herb_compounds = compounds_data.get('herb_compounds', {})
+compound_details = compounds_data.get('compounds', {})
 
-# Reverse: therapeutic use -> list of bioactivities
-use_to_bios = {}
-for bio, use in bio_to_use.items():
-    use_to_bios.setdefault(use, []).append(bio)
+# Load compounds Excel with caching
+species_data = load_compounds_excel()   # will be None if file missing
 
+# ---------- Helper functions ----------
 def normalize_data(data):
     """Convert old Excel‑style data to standard format."""
     normalized = []
@@ -156,15 +147,6 @@ def normalize_data(data):
             continue
     return normalized
 
-raw_data = load_data()
-data = normalize_data(raw_data)
-aliases = load_aliases()
-conditions_data = load_conditions()
-monographs = load_monographs()
-compounds_data = load_compounds()
-herb_compounds = compounds_data.get('herb_compounds', {})
-compound_details = compounds_data.get('compounds', {})
-
 def get_canonical_name(search_term):
     if not search_term:
         return search_term
@@ -197,8 +179,28 @@ def save_report(drug, herb, current_risk, reason, details):
         json.dump(reports, f, indent=2)
     st.session_state.report_submitted = True
 
-# ------------------------------------------------------------
-# UI CSS
+# ---------- Bioactivity mapping ----------
+bio_to_use = {
+    'anti-plasmodial': 'Malaria',
+    'antibacterial': 'Bacterial infections',
+    'antifungal': 'Fungal infections',
+    'antimalarial': 'Malaria',
+    'cytotoxic': 'Cancer',
+    'antioxidant': 'Oxidative stress',
+    'anti-inflammatory': 'Inflammation',
+    'antileishmanial': 'Leishmaniasis',
+    'antitrypanosomal': 'Trypanosomiasis',
+    'antimycobacterial': 'Tuberculosis',
+    'larvicidal': 'Mosquito control',
+    'radical scavenging': 'Oxidative stress',
+    'antimicrobial': 'Microbial infections',
+    'insect repellent': 'Insect repellent',
+}
+use_to_bios = {}
+for bio, use in bio_to_use.items():
+    use_to_bios.setdefault(use, []).append(bio)
+
+# ---------- CSS ----------
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -470,7 +472,6 @@ if language == "English":
         "about": "### About This Tool",
         "last_updated": "Last Updated: March 2026",
         "footer": "Made with ❤️ for Kenya",
-        # My Meds
         "my_meds_title": "💊 My Medications",
         "my_meds_add_label": "Add a drug to your list",
         "my_meds_add_placeholder": "Select a drug...",
@@ -478,14 +479,12 @@ if language == "English":
         "my_meds_remove": "Remove",
         "my_meds_empty": "No medications saved yet. Add some above.",
         "my_meds_check_header": "🔍 Checking against your medications:",
-        # Condition search
         "condition_title": "🔍 Search by Condition",
         "condition_placeholder": "Select a condition...",
         "condition_drugs_header": "Common medications for this condition:",
         "condition_herbs_header": "Herbs to be cautious with:",
         "condition_no_drugs": "No specific drug list for this condition.",
         "condition_no_herbs": "No specific herb warnings for this condition.",
-        # Herb monograph
         "monograph_title": "🌿 TCIM Monograph",
         "monograph_select_placeholder": "Select an herb...",
         "monograph_scientific_name": "Scientific name",
@@ -495,7 +494,6 @@ if language == "English":
         "monograph_contraindications": "Contraindications",
         "monograph_side_effects": "Possible side effects",
         "monograph_traditional_preparation": "Traditional preparation",
-        # Compound search
         "compound_search_title": "🔬 Search by Active Compound",
         "compound_search_placeholder": "Choose a compound...",
         "compound_pubchem": "PubChem",
@@ -543,7 +541,6 @@ else:
         "about": "### Kuhusu Zana Hii",
         "last_updated": "Ilisasishwa: Machi 2026",
         "footer": "Imetengenezwa kwa ❤️ kwa Kenya",
-        # My Meds
         "my_meds_title": "💊 Dawa Zangu",
         "my_meds_add_label": "Ongeza dawa kwenye orodha yako",
         "my_meds_add_placeholder": "Chagua dawa...",
@@ -551,14 +548,12 @@ else:
         "my_meds_remove": "Ondoa",
         "my_meds_empty": "Hakuna dawa zilizohifadhiwa bado. Ongeza hapo juu.",
         "my_meds_check_header": "🔍 Kuangalia dhidi ya dawa zako:",
-        # Condition search
         "condition_title": "🔍 Tafuta kwa Hali ya Afya",
         "condition_placeholder": "Chagua hali...",
         "condition_drugs_header": "Dawa za kawaida kwa hali hii:",
         "condition_herbs_header": "Mimea ya kuwa mwangalifu nayo:",
         "condition_no_drugs": "Hakuna orodha maalum ya dawa kwa hali hii.",
         "condition_no_herbs": "Hakuna tahadhari maalum za mimea kwa hali hii.",
-        # Herb monograph
         "monograph_title": "🌿 Maelezo ya TCIM",
         "monograph_select_placeholder": "Chagua mmea...",
         "monograph_scientific_name": "Jina la kisayansi",
@@ -568,7 +563,6 @@ else:
         "monograph_contraindications": "Vikwazo",
         "monograph_side_effects": "Madhara yanayowezekana",
         "monograph_traditional_preparation": "Maandalizi ya kienyeji",
-        # Compound search
         "compound_search_title": "🔬 Tafuta kwa Kiambato Amilifu",
         "compound_search_placeholder": "Chagua kiambato...",
         "compound_pubchem": "PubChem",
@@ -659,64 +653,58 @@ if data:
 
                 # ========== NEW: Plants with bioactive compounds that may help ==========
                 st.markdown("### 🌿 Plants with bioactive compounds for this condition")
-                # Check if we have bioactivity mapping for this condition
-                condition_key_lower = selected_condition_key.lower()
-                # Map condition to a standard therapeutic term
-                # We'll use the mapping from use_to_bios – but the condition name may not match exactly.
-                # For simplicity, we'll try to match the condition key to our mapping.
-                # Better: use a dictionary that links condition keys (from conditions.json) to a therapeutic term.
-                # For now, we'll try a direct match (e.g., "malaria" vs "Malaria").
-                # We'll convert the condition display name to lowercase and try to find a match.
-                # Let's create a temporary mapping for common conditions.
-                condition_to_therapeutic = {
-                    "malaria": "Malaria",
-                    "diabetes": "Diabetes",
-                    "hypertension": "Hypertension",
-                    "high blood pressure": "Hypertension",
-                    "hiv": "HIV",
-                    "pregnancy": "Pregnancy",
-                    "liver disease": "Liver disease",
-                    "kidney disease": "Kidney disease",
-                    "bacterial infections": "Bacterial infections",
-                    "inflammation": "Inflammation",
-                    "cancer": "Cancer",
-                    "tuberculosis": "Tuberculosis",
-                    "oxidative stress": "Oxidative stress",
-                    "leishmaniasis": "Leishmaniasis",
-                    "trypanosomiasis": "Trypanosomiasis",
-                    "fungal infections": "Fungal infections",
-                }
-                display_name = condition['display_name'].lower()
-                therapeutic = condition_to_therapeutic.get(display_name, None)
-                if therapeutic and therapeutic in use_to_bios:
-                    target_bios = use_to_bios[therapeutic]
-                    species_data = load_compounds_excel()
-                    if species_data:
-                        matching_species = []
-                        for sp, compounds in species_data.items():
-                            for comp in compounds:
-                                if any(bio in target_bios for bio in comp['bioactivities']):
-                                    matching_species.append(sp)
-                                    break
-                        if matching_species:
-                            for sp in sorted(set(matching_species))[:20]:  # limit to 20 for readability
-                                with st.expander(f"🌱 {sp}"):
-                                    # Show compounds for this species that have relevant bioactivities
-                                    for comp in species_data[sp]:
-                                        relevant_bios = [b for b in comp['bioactivities'] if b in target_bios]
-                                        if relevant_bios:
-                                            st.markdown(f"**Compound:** {comp['compound']}")
-                                            st.markdown(f"**Bioactivities:** {', '.join(comp['bioactivities'])}")
-                                            if comp['pmids']:
-                                                links = ", ".join(f"[{pmid}](https://pubmed.ncbi.nlm.nih.gov/{pmid}/)" for pmid in comp['pmids'])
-                                                st.markdown(f"**References:** {links}")
-                                            st.markdown("---")
-                        else:
-                            st.info("No plants found with bioactive compounds for this condition.")
-                    else:
-                        st.info("Compound data not available.")
+                # Check if species_data is available (Excel loaded)
+                if species_data is None:
+                    st.info("Bioactive compound data is currently unavailable. We'll add it soon!")
                 else:
-                    st.info("No bioactive compound mapping available for this condition yet.")
+                    # Map condition to a therapeutic term
+                    condition_to_therapeutic = {
+                        "malaria": "Malaria",
+                        "diabetes": "Diabetes",
+                        "hypertension": "Hypertension",
+                        "high blood pressure": "Hypertension",
+                        "hiv": "HIV",
+                        "pregnancy": "Pregnancy",
+                        "liver disease": "Liver disease",
+                        "kidney disease": "Kidney disease",
+                        "bacterial infections": "Bacterial infections",
+                        "inflammation": "Inflammation",
+                        "cancer": "Cancer",
+                        "tuberculosis": "Tuberculosis",
+                        "oxidative stress": "Oxidative stress",
+                        "leishmaniasis": "Leishmaniasis",
+                        "trypanosomiasis": "Trypanosomiasis",
+                        "fungal infections": "Fungal infections",
+                    }
+                    display_name = condition['display_name'].lower()
+                    therapeutic = condition_to_therapeutic.get(display_name, None)
+                    if therapeutic and therapeutic in use_to_bios:
+                        target_bios = use_to_bios[therapeutic]
+                        if species_data:
+                            matching_species = []
+                            for sp, compounds in species_data.items():
+                                for comp in compounds:
+                                    if any(bio in target_bios for bio in comp['bioactivities']):
+                                        matching_species.append(sp)
+                                        break
+                            if matching_species:
+                                for sp in sorted(set(matching_species))[:20]:
+                                    with st.expander(f"🌱 {sp}"):
+                                        for comp in species_data[sp]:
+                                            relevant_bios = [b for b in comp['bioactivities'] if b in target_bios]
+                                            if relevant_bios:
+                                                st.markdown(f"**Compound:** {comp['compound']}")
+                                                st.markdown(f"**Bioactivities:** {', '.join(comp['bioactivities'])}")
+                                                if comp['pmids']:
+                                                    links = ", ".join(f"[{pmid}](https://pubmed.ncbi.nlm.nih.gov/{pmid}/)" for pmid in comp['pmids'])
+                                                    st.markdown(f"**References:** {links}")
+                                                st.markdown("---")
+                            else:
+                                st.info("No plants found with bioactive compounds for this condition.")
+                        else:
+                            st.info("Compound data not available.")
+                    else:
+                        st.info("No bioactive compound mapping available for this condition yet.")
                 # ================================================================
 
     # --------------------------------------------------------
