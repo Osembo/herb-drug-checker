@@ -838,7 +838,7 @@ if st.session_state.active_tab == "🔍 Interaction Checker":
 # Condition Explorer Tab (NEW)
 # ------------------------------------------------------------
 elif st.session_state.active_tab == "🌿 Condition Explorer":
-    # Hardcoded condition-herb data for MVP (can be moved to a JSON file later)
+    # Hardcoded condition‑herb data for MVP
     condition_data = {
         "Malaria": {
             "overview": "Parasitic infection transmitted by mosquitoes, common in Kenya.",
@@ -933,22 +933,23 @@ elif st.session_state.active_tab == "🌿 Condition Explorer":
         }
     }
 
-    # Helper to get color for evidence level
     def evidence_color(level):
         if level.lower() == "strong":
             return "🟢"
         elif level.lower() == "moderate":
             return "🟡"
-        else:
-            return "🔴"
+        return "🔴"
 
-    # Header for Condition Explorer
     st.markdown("## 🌿 Condition-Based Herbal & TCIM Options")
     st.markdown("Explore locally used herbal and integrative options — with safety guidance.")
     st.info("⚠️ This tool does NOT replace medical treatment. Always confirm diagnosis.")
 
-    # Search input and popular chips
-    search_condition = st.text_input("🔎 Search condition", placeholder="e.g., Malaria, Diabetes, Ulcers", label_visibility="collapsed")
+    # Search and chips
+    search_condition = st.text_input(
+        "🔎 Search condition",
+        placeholder="e.g., Malaria, Diabetes, Ulcers",
+        label_visibility="collapsed"
+    )
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         if st.button("Malaria"):
@@ -963,7 +964,6 @@ elif st.session_state.active_tab == "🌿 Condition Explorer":
         if st.button("Hypertension"):
             search_condition = "Hypertension"
 
-    # Normalize input
     selected_condition = None
     if search_condition:
         for key in condition_data.keys():
@@ -984,9 +984,8 @@ elif st.session_state.active_tab == "🌿 Condition Explorer":
         </div>
         """, unsafe_allow_html=True)
 
-        # Herbal Options Section
+        # --- Local Herbal Options (hardcoded) ---
         st.markdown("### 🌿 Common Local Herbal Options")
-        # 2-column layout for herb cards
         cols = st.columns(2)
         for idx, herb in enumerate(cond['herbs']):
             with cols[idx % 2]:
@@ -999,11 +998,57 @@ elif st.session_state.active_tab == "🌿 Condition Explorer":
                     <p><strong>⚠️ Safety Notes:</strong> {herb['safety']}</p>
                 </div>
                 """, unsafe_allow_html=True)
-                # Button to check interaction with this herb
-                if st.button(f"🔍 Check Drug Interaction", key=f"check_{selected_condition}_{idx}"):
+                if st.button("🔍 Check Drug Interaction", key=f"check_{selected_condition}_{idx}"):
                     st.session_state.last_herb = herb['name']
                     st.session_state.active_tab = "🔍 Interaction Checker"
                     st.rerun()
+
+        # --- NEW: Bioactive Compounds from the Excel file ---
+        st.markdown("### 🌿 Plants with Bioactive Compounds for This Condition")
+        if species_data is None:
+            st.info("Bioactive compound data is currently unavailable. We'll add it soon!")
+        else:
+            # Map condition to therapeutic term for bioactivity lookup
+            condition_to_therapeutic = {
+                "malaria": "Malaria",
+                "diabetes": "Diabetes",
+                "hypertension": "Hypertension",
+                "high blood pressure": "Hypertension",
+                "hiv": "HIV",
+                "bacterial infections": "Bacterial infections",
+                "inflammation": "Inflammation",
+                "cancer": "Cancer",
+                "tuberculosis": "Tuberculosis",
+                "oxidative stress": "Oxidative stress",
+                "leishmaniasis": "Leishmaniasis",
+                "trypanosomiasis": "Trypanosomiasis",
+                "fungal infections": "Fungal infections",
+            }
+            therapeutic = condition_to_therapeutic.get(selected_condition.lower(), None)
+            if therapeutic and therapeutic in use_to_bios:
+                target_bios = use_to_bios[therapeutic]
+                matching_species = []
+                for sp, compounds in species_data.items():
+                    for comp in compounds:
+                        if any(bio in target_bios for bio in comp['bioactivities']):
+                            matching_species.append(sp)
+                            break
+                if matching_species:
+                    for sp in sorted(set(matching_species))[:20]:
+                        with st.expander(f"🌱 {sp}"):
+                            for comp in species_data[sp]:
+                                relevant_bios = [b for b in comp['bioactivities'] if b in target_bios]
+                                if relevant_bios:
+                                    st.markdown(f"**Compound:** {comp['compound']}")
+                                    st.markdown(f"**Bioactivities:** {', '.join(comp['bioactivities'])}")
+                                    if comp['pmids']:
+                                        links = ", ".join(f"[{pmid}](https://pubmed.ncbi.nlm.nih.gov/{pmid}/)" for pmid in comp['pmids'])
+                                        st.markdown(f"**References:** {links}")
+                                    st.markdown("---")
+                else:
+                    st.info("No plants found with bioactive compounds for this condition.")
+            else:
+                st.info("No bioactive compound mapping available for this condition yet.")
 
         # Critical Safety Block
         st.markdown("""
@@ -1014,12 +1059,10 @@ elif st.session_state.active_tab == "🌿 Condition Explorer":
             • Some herbs interact with medications.</p>
         </div>
         """, unsafe_allow_html=True)
-        # Bridge button
         if st.button("🔄 Check interactions before use", width='stretch'):
             st.session_state.active_tab = "🔍 Interaction Checker"
             st.rerun()
 
-        # Educational snippet
         with st.expander("📘 Did You Know?"):
             st.markdown("""
             Some herbal compounds (e.g., artemisinin from *Artemisia annua*) have been developed into modern medicines.
