@@ -100,20 +100,8 @@ def load_compounds_excel():
         st.warning(f"Could not load compounds Excel: {e}")
         return None
 
-# ---------- Load all data once ----------
-raw_data = load_data()
-data = normalize_data(raw_data)   # normalize_data defined later
-aliases = load_aliases()
-conditions_data = load_conditions()
-monographs = load_monographs()
-compounds_data = load_compounds()
-herb_compounds = compounds_data.get('herb_compounds', {})
-compound_details = compounds_data.get('compounds', {})
-
-# Load compounds Excel with caching
-species_data = load_compounds_excel()   # will be None if file missing
-
-# ---------- Helper functions ----------
+# ------------------------------------------------------------
+# Helper functions (defined before use)
 def normalize_data(data):
     """Convert old Excel‑style data to standard format."""
     normalized = []
@@ -179,7 +167,7 @@ def save_report(drug, herb, current_risk, reason, details):
         json.dump(reports, f, indent=2)
     st.session_state.report_submitted = True
 
-# ---------- Bioactivity mapping ----------
+# Bioactivity mapping (used later)
 bio_to_use = {
     'anti-plasmodial': 'Malaria',
     'antibacterial': 'Bacterial infections',
@@ -200,6 +188,25 @@ use_to_bios = {}
 for bio, use in bio_to_use.items():
     use_to_bios.setdefault(use, []).append(bio)
 
+# ------------------------------------------------------------
+# Load all data once (now all helpers are defined)
+raw_data = load_data()
+data = normalize_data(raw_data)
+aliases = load_aliases()
+conditions_data = load_conditions()
+monographs = load_monographs()
+compounds_data = load_compounds()
+herb_compounds = compounds_data.get('herb_compounds', {})
+compound_details = compounds_data.get('compounds', {})
+
+# Load compounds Excel with caching
+species_data = load_compounds_excel()   # will be None if file missing
+
+# ------------------------------------------------------------
+# The rest of the code (CSS, language, UI sections) remains exactly the same
+# as in the previous version, so I'm omitting it here for brevity.
+# But you can copy the full code from the previous answer and replace the
+# top part with this corrected order.
 # ---------- CSS ----------
 st.markdown("""
 <style>
