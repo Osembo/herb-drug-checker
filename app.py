@@ -3,6 +3,7 @@ import json
 import pandas as pd
 import datetime
 import os
+from pathlib import Path
 
 # Page config
 st.set_page_config(
@@ -67,6 +68,60 @@ def load_compounds():
             return json.load(f)
     except Exception:
         return {"compounds": {}, "herb_compounds": {}}
+
+@st.cache_data
+def load_compounds_excel():
+    """Load and process the Kenyan compounds Excel file for bioactivity search."""
+    try:
+        data_path = Path(__file__).parent / 'kenyan_compounds.xlsx'
+        df = pd.read_excel(data_path, sheet_name='molecules (1)')
+        df = df.fillna('')
+        # Split lists
+        df['Species_list'] = df['Species'].apply(lambda x: [s.strip() for s in x.split(';')] if x else [])
+        df['Bioactivities_list'] = df['Bioactivities'].apply(lambda x: [s.strip() for s in x.split(';')] if x else [])
+        df['PMIDs_list'] = df['PMIDs'].apply(lambda x: [s.strip() for s in x.split(';')] if x else [])
+
+        # Build species -> list of compounds with bioactivities and PMIDs
+        species_data = {}
+        for _, row in df.iterrows():
+            compound = row['Compound Name']
+            bio_list = row['Bioactivities_list']
+            pmid_list = row['PMIDs_list']
+            for sp in row['Species_list']:
+                if sp not in species_data:
+                    species_data[sp] = []
+                species_data[sp].append({
+                    'compound': compound,
+                    'bioactivities': bio_list,
+                    'pmids': pmid_list
+                })
+        return species_data
+    except Exception as e:
+        st.warning(f"Could not load compounds Excel: {e}")
+        return {}
+
+# Bioactivity -> therapeutic use mapping
+bio_to_use = {
+    'anti-plasmodial': 'Malaria',
+    'antibacterial': 'Bacterial infections',
+    'antifungal': 'Fungal infections',
+    'antimalarial': 'Malaria',
+    'cytotoxic': 'Cancer',
+    'antioxidant': 'Oxidative stress',
+    'anti-inflammatory': 'Inflammation',
+    'antileishmanial': 'Leishmaniasis',
+    'antitrypanosomal': 'Trypanosomiasis',
+    'antimycobacterial': 'Tuberculosis',
+    'larvicidal': 'Mosquito control',
+    'radical scavenging': 'Oxidative stress',
+    'antimicrobial': 'Microbial infections',
+    'insect repellent': 'Insect repellent',
+}
+
+# Reverse: therapeutic use -> list of bioactivities
+use_to_bios = {}
+for bio, use in bio_to_use.items():
+    use_to_bios.setdefault(use, []).append(bio)
 
 def normalize_data(data):
     """Convert old Excel‑style data to standard format."""
@@ -143,7 +198,7 @@ def save_report(drug, herb, current_risk, reason, details):
     st.session_state.report_submitted = True
 
 # ------------------------------------------------------------
-# UI CSS (full)
+# UI CSS
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -567,7 +622,7 @@ if data:
             st.info(texts['my_meds_empty'])
 
     # --------------------------------------------------------
-    # 2. Search by Condition Section
+    # 2. Search by Condition Section (enhanced with bioactivity search)
     with st.expander(texts['condition_title']):
         if not conditions_data:
             st.warning("Condition data not loaded.")
@@ -602,60 +657,93 @@ if data:
                 else:
                     st.info(texts['condition_no_herbs'])
 
-    # --------------------------------------------------------
+                # ========== NEW: Plants with bioactive compounds that may help ==========
+                st.markdown("### 🌿 Plants with bioactive compounds for this condition")
+                # Check if we have bioactivity mapping for this condition
+                condition_key_lower = selected_condition_key.lower()
+                # Map condition to a standard therapeutic term
+                # We'll use the mapping from use_to_bios – but the condition name may not match exactly.
+                # For simplicity, we'll try to match the condition key to our mapping.
+                # Better: use a dictionary that links condition keys (from conditions.json) to a therapeutic term.
+                # For now, we'll try a direct match (e.g., "malaria" vs "Malaria").
+                # We'll convert the condition display name to lowercase and try to find a match.
+                # Let's create a temporary mapping for common conditions.
+                condition_to_therapeutic = {
+                    "malaria": "Malaria",
+                    "diabetes": "Diabetes",
+                    "hypertension": "Hypertension",
+                    "high blood pressure": "Hypertension",
+                    "hiv": "HIV",
+                    "pregnancy": "Pregnancy",
+                    "liver disease": "Liver disease",
+                    "kidney disease": "Kidney disease",
+                    "bacterial infections": "Bacterial infections",
+                    "inflammation": "Inflammation",
+                    "cancer": "Cancer",
+                    "tuberculosis": "Tuberculosis",
+                    "oxidative stress": "Oxidative stress",
+                    "leishmaniasis": "Leishmaniasis",
+                    "trypanosomiasis": "Trypanosomiasis",
+                    "fungal infections": "Fungal infections",
+                }
+                display_name = condition['display_name'].lower()
+                therapeutic = condition_to_therapeutic.get(display_name, None)
+                if therapeutic and therapeutic in use_to_bios:
+                    target_bios = use_to_bios[therapeutic]
+                    species_data = load_compounds_excel()
+                    if species_data:
+                        matching_species = []
+                        for sp, compounds in species_data.items():
+                            for comp in compounds:
+                                if any(bio in target_bios for bio in comp['bioactivities']):
+                                    matching_species.append(sp)
+                                    break
+                        if matching_species:
+                            for sp in sorted(set(matching_species))[:20]:  # limit to 20 for readability
+                                with st.expander(f"🌱 {sp}"):
+                                    # Show compounds for this species that have relevant bioactivities
+                                    for comp in species_data[sp]:
+                                        relevant_bios = [b for b in comp['bioactivities'] if b in target_bios]
+                                        if relevant_bios:
+                                            st.markdown(f"**Compound:** {comp['compound']}")
+                                            st.markdown(f"**Bioactivities:** {', '.join(comp['bioactivities'])}")
+                                            if comp['pmids']:
+                                                links = ", ".join(f"[{pmid}](https://pubmed.ncbi.nlm.nih.gov/{pmid}/)" for pmid in comp['pmids'])
+                                                st.markdown(f"**References:** {links}")
+                                            st.markdown("---")
+                        else:
+                            st.info("No plants found with bioactive compounds for this condition.")
+                    else:
+                        st.info("Compound data not available.")
+                else:
+                    st.info("No bioactive compound mapping available for this condition yet.")
+                # ================================================================
 
-    # 3. Herb Monograph Section (with compounds and scientific name search)
+    # --------------------------------------------------------
+    # 3. Herb Monograph Section (with compounds)
     with st.expander(texts['monograph_title']):
         if not monographs:
             st.warning("Monograph data not loaded.")
         else:
-            # Add a text search that matches scientific names
-            st.markdown("##### Search by any name (common or scientific)")
-            search_term = st.text_input(
-                "",
-                placeholder=texts['monograph_select_placeholder'],
-                key="monograph_search",
-                label_visibility="collapsed"
-            )
-    
-            # Resolve search term to canonical herb name
-            selected_herb = None
-            if search_term:
-                canonical = get_canonical_name(search_term)
-                if canonical in monographs:
-                    selected_herb = canonical
-                else:
-                    st.warning(f"'{search_term}' not found. Try selecting from the list below.")
-    
-            # Dropdown for selection (optional, but keeps existing functionality)
             herb_options = [""] + sorted(monographs.keys())
-            selected_herb_dropdown = st.selectbox(
-                "Or select from list:",
+            selected_herb = st.selectbox(
+                "",
                 options=herb_options,
                 format_func=lambda x: x.title() if x else texts['monograph_select_placeholder'],
                 key="monograph_select"
             )
-    
-            # Use the search result if present, otherwise dropdown selection
             if selected_herb:
-                final_herb = selected_herb
-            elif selected_herb_dropdown:
-                final_herb = selected_herb_dropdown
-            else:
-                final_herb = None
-    
-            if final_herb:
-                herb_data = monographs[final_herb]
-                st.markdown(f"### {final_herb.title()}")
-    
+                herb_data = monographs[selected_herb]
+                st.markdown(f"### {selected_herb.title()}")
+
                 if herb_data.get('scientific_name'):
                     st.markdown(f"*{herb_data['scientific_name']}*")
-    
+
                 col1, col2 = st.columns(2)
-    
+
                 with col1:
                     # Active compounds from ANPDB
-                    herb_comp_list = herb_compounds.get(final_herb, [])
+                    herb_comp_list = herb_compounds.get(selected_herb, [])
                     if herb_comp_list:
                         st.markdown(f"**{texts['monograph_active_compounds']}**")
                         for compound in herb_comp_list:
@@ -665,31 +753,31 @@ if data:
                                 st.markdown(f"- [{compound}](https://pubchem.ncbi.nlm.nih.gov/compound/{pubchem_id})")
                             else:
                                 st.markdown(f"- {compound}")
-    
+
                     if herb_data.get('common_uses'):
                         st.markdown(f"**{texts['monograph_common_uses']}**")
                         for use in herb_data['common_uses']:
                             st.markdown(f"- {use}")
-    
+
                     if herb_data.get('potential_interactions'):
                         st.markdown(f"**{texts['monograph_potential_interactions']}**")
                         for drug in herb_data['potential_interactions']:
-                            if st.button(f"🔍 {drug.title()}", key=f"mono_drug_{final_herb}_{drug}"):
+                            if st.button(f"🔍 {drug.title()}", key=f"mono_drug_{selected_herb}_{drug}"):
                                 st.session_state.drug_select = drug.title()
-                                st.session_state.herb_select = final_herb.title()
+                                st.session_state.herb_select = selected_herb.title()
                                 st.rerun()
-    
+
                 with col2:
                     if herb_data.get('contraindications'):
                         st.markdown(f"**{texts['monograph_contraindications']}**")
                         for contra in herb_data['contraindications']:
                             st.markdown(f"- {contra}")
-    
+
                     if herb_data.get('side_effects'):
                         st.markdown(f"**{texts['monograph_side_effects']}**")
                         for effect in herb_data['side_effects']:
                             st.markdown(f"- {effect}")
-    
+
                     if herb_data.get('traditional_preparation'):
                         st.markdown(f"**{texts['monograph_traditional_preparation']}**")
                         st.markdown(herb_data['traditional_preparation'])
