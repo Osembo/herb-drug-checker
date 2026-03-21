@@ -839,261 +839,146 @@ if st.session_state.active_tab == "🔍 Interaction Checker":
 # ------------------------------------------------------------
 elif st.session_state.active_tab == "🌿 Condition Explorer":
     # ------------------------------------------------------------
-    # 1. Build dynamic condition list from the Excel bioactivities
-    # ------------------------------------------------------------
-    if species_data is not None:
-        # Collect all unique bioactivities from the Excel file
-        all_bioactivities = set()
-        for compounds in species_data.values():
-            for comp in compounds:
-                for bio in comp['bioactivities']:
-                    all_bioactivities.add(bio.lower().strip())
-        # Build a mapping from bioactivity to a user‑friendly display name
-        # If we already have a mapping in bio_to_use, use that, otherwise use the bioactivity itself.
-        bio_to_display = {}
-        for bio in all_bioactivities:
-            # Look up in bio_to_use (if defined)
-            if bio in bio_to_use:
-                display = bio_to_use[bio]
-            else:
-                # Fallback: capitalize and replace underscores/hyphens
-                display = bio.replace('_', ' ').replace('-', ' ').title()
-            bio_to_display[bio] = display
-        # Now build a list of unique conditions (the display names)
-        all_conditions = sorted(set(bio_to_display.values()))
-        # Also create a reverse mapping from display name to original bioactivities
-        display_to_bios = {}
-        for bio, disp in bio_to_display.items():
-            display_to_bios.setdefault(disp, []).append(bio)
-    else:
-        all_conditions = []
-        display_to_bios = {}
-        st.warning("Bioactive compound data not loaded. Please ensure kenyan_compounds.xlsx is present.")
-
-    # ------------------------------------------------------------
-    # 2. Optionally, add a few hardcoded conditions with more detailed info
-    #    (these will appear in the search as well)
-    # ------------------------------------------------------------
-    hardcoded_conditions = {
-        "Malaria": {
-            "overview": "Parasitic infection transmitted by mosquitoes, common in Kenya.",
-            "standard_treatment": "Artemisinin-based Combination Therapy (ACTs)",
-            "clinical_note": "Herbal options may support symptoms but are NOT first-line treatment.",
-            "herbs": [
-                {
-                    "name": "Artemisia annua",
-                    "use": "Fever, malaria-like symptoms",
-                    "evidence": "Moderate",
-                    "mechanism": "Contains artemisinin compounds active against parasites",
-                    "safety": "Not a substitute for ACTs. Risk of resistance if used improperly."
-                },
-                {
-                    "name": "Neem (Azadirachta indica)",
-                    "use": "Antipyretic, immune support",
-                    "evidence": "Limited",
-                    "mechanism": "Contains compounds with antimalarial activity in lab studies",
-                    "safety": "Avoid during pregnancy; may lower blood sugar."
-                }
-            ]
-        },
-        "Diabetes": {
-            "overview": "Chronic condition affecting blood sugar regulation.",
-            "standard_treatment": "Metformin, insulin, lifestyle changes",
-            "clinical_note": "Herbal supplements can affect blood sugar and interact with medications.",
-            "herbs": [
-                {
-                    "name": "Moringa (Moringa oleifera)",
-                    "use": "Blood sugar management",
-                    "evidence": "Moderate",
-                    "mechanism": "Contains isothiocyanates that may improve insulin sensitivity",
-                    "safety": "May lower blood sugar; monitor closely if on antidiabetic drugs."
-                }
-            ]
-        },
-        "Hypertension": {
-            "overview": "High blood pressure, a risk factor for heart disease and stroke.",
-            "standard_treatment": "ACE inhibitors, calcium channel blockers, lifestyle changes",
-            "clinical_note": "Some herbs can lower blood pressure and interact with medications.",
-            "herbs": [
-                {
-                    "name": "Garlic (Allium sativum)",
-                    "use": "Mild blood pressure reduction",
-                    "evidence": "Moderate",
-                    "mechanism": "May increase nitric oxide, relax blood vessels",
-                    "safety": "Can increase bleeding risk; avoid with anticoagulants."
-                }
-            ]
-        }
-        # Add more hardcoded conditions as needed
-    }
-
-    # Merge dynamic conditions with hardcoded ones
-    condition_data = {}
-    # First add all dynamic conditions (from bioactivities) with generic info
-    for condition_name in all_conditions:
-        condition_data[condition_name] = {
-            "overview": f"Condition related to {condition_name.lower()} activity.",
-            "standard_treatment": "Varies depending on the specific condition. Always consult a healthcare professional.",
-            "clinical_note": "Some herbs may interact with medications or affect the condition. Use with caution.",
-            "herbs": []   # we'll rely on the bioactive plants section
-        }
-    # Then update with hardcoded data (overwrites where keys match)
-    for cond_name, cond_info in hardcoded_conditions.items():
-        condition_data[cond_name] = cond_info
-
-    # ------------------------------------------------------------
-    # 3. Helper to show evidence color
-    # ------------------------------------------------------------
-    def evidence_color(level):
-        if level.lower() == "strong":
-            return "🟢"
-        elif level.lower() == "moderate":
-            return "🟡"
-        return "🔴"
-
-    # ------------------------------------------------------------
-    # 4. UI
+    # 1. Header and disclaimer
     # ------------------------------------------------------------
     st.markdown("## 🌿 Condition-Based Herbal & TCIM Options")
     st.markdown("Explore locally used herbal and integrative options — with safety guidance.")
     st.info("⚠️ This tool does NOT replace medical treatment. Always confirm diagnosis.")
 
-    # Search input
-    search_condition = st.text_input(
-        "🔎 Search condition",
-        placeholder="e.g., Malaria, Antibacterial, Anti-inflammatory",
-        label_visibility="collapsed"
-    )
+    # ------------------------------------------------------------
+    # 2. Condition selection from conditions.json (if loaded)
+    # ------------------------------------------------------------
+    if not conditions_data:
+        st.warning("Condition data not loaded. Please ensure conditions.json is present.")
+    else:
+        condition_options = [""] + sorted(conditions_data.keys())
+        selected_condition_key = st.selectbox(
+            "Select a condition",
+            options=condition_options,
+            format_func=lambda x: conditions_data[x]['display_name'] if x else "Choose a condition...",
+            key="condition_select"
+        )
+        if selected_condition_key:
+            condition = conditions_data[selected_condition_key]
+            display_name = condition['display_name']
 
-    # Popular condition chips (only show some from the full list)
-    popular_conditions = ["Malaria", "Diabetes", "Hypertension", "Antibacterial", "Anti-inflammatory", "Cancer"]
-    # Only show those that exist in condition_data
-    popular_conditions = [c for c in popular_conditions if c in condition_data]
-    if popular_conditions:
-        cols = st.columns(len(popular_conditions))
-        for i, cond in enumerate(popular_conditions):
-            with cols[i]:
-                if st.button(cond):
-                    search_condition = cond
-                    st.rerun()
+            # Condition overview card (dynamic from JSON)
+            st.markdown(f"""
+            <div style="background: #f0f9f0; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
+                <h3>🟩 CONDITION: {display_name}</h3>
+                <p><strong>📌 Overview:</strong> Information about {display_name}.</p>
+                <p><strong>🏥 Standard Treatment:</strong> Varies. Always consult a healthcare professional.</p>
+                <p><strong>⚠️ Clinical Note:</strong> Herbal options may be supportive but are NOT first-line treatment.</p>
+            </div>
+            """, unsafe_allow_html=True)
 
-    # Normalize input and find matching condition
-    selected_condition = None
-    if search_condition:
-        search_lower = search_condition.lower()
-        for key in condition_data.keys():
-            if key.lower() == search_lower:
-                selected_condition = key
-                break
-        if not selected_condition:
-            # Try partial match
-            matches = [k for k in condition_data.keys() if search_lower in k.lower()]
-            if matches:
-                selected_condition = matches[0]
-                st.info(f"Did you mean '{selected_condition}'?")
+            # ----------------------------------------------------
+            # 3. Drugs commonly used for this condition (from JSON)
+            # ----------------------------------------------------
+            st.markdown(f"**💊 Common Medications for {display_name}**")
+            if condition.get('drugs'):
+                cols = st.columns(min(3, len(condition['drugs'])))
+                for i, drug in enumerate(condition['drugs']):
+                    with cols[i % len(cols)]:
+                        if st.button(f"{drug.title()}", key=f"cond_drug_{drug}"):
+                            # Go to Interaction Checker and pre‑fill the drug
+                            st.session_state.drug_select = drug.title()
+                            st.session_state.active_tab = "🔍 Interaction Checker"
+                            st.rerun()
+            else:
+                st.info("No specific drug list for this condition in the database.")
 
-    if selected_condition:
-        cond = condition_data[selected_condition]
-
-        # Condition overview card
-        st.markdown(f"""
-        <div style="background: #f0f9f0; border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
-            <h3>🟩 CONDITION: {selected_condition}</h3>
-            <p><strong>📌 Overview:</strong> {cond['overview']}</p>
-            <p><strong>🏥 Standard Treatment:</strong> {cond['standard_treatment']}</p>
-            <p><strong>⚠️ Clinical Note:</strong> {cond['clinical_note']}</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # --- Hardcoded herbs (if any) ---
-        if cond.get('herbs'):
-            st.markdown("### 🌿 Common Local Herbal Options")
-            cols = st.columns(2)
-            for idx, herb in enumerate(cond['herbs']):
-                with cols[idx % 2]:
+            # ----------------------------------------------------
+            # 4. Herbs to be cautious with (from JSON)
+            # ----------------------------------------------------
+            st.markdown(f"**🌿 Herbs to Be Cautious With for {display_name}**")
+            if condition.get('herb_warnings'):
+                for hw in condition['herb_warnings']:
+                    risk_color = "🔴" if hw['risk'] == "High" else "🟡" if hw['risk'] == "Moderate" else "🟢"
                     st.markdown(f"""
-                    <div style="background: white; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border: 1px solid #e0e0e0;">
-                        <h4 style="margin-top:0;">🌿 {herb['name']}</h4>
-                        <p><strong>🧾 Traditional Use:</strong> {herb['use']}</p>
-                        <p><strong>🧪 Evidence Level:</strong> {evidence_color(herb['evidence'])} {herb['evidence']}</p>
-                        <p><strong>⚙️ Mechanism:</strong> {herb['mechanism']}</p>
-                        <p><strong>⚠️ Safety Notes:</strong> {herb['safety']}</p>
+                    <div style="background: #f8f9fa; padding: 0.8rem; border-radius: 8px; margin: 0.5rem 0; border-left: 5px solid {'#c62828' if hw['risk']=='High' else '#ff8f00' if hw['risk']=='Moderate' else '#2e7d32'};">
+                        <b>{risk_color} {hw['herb'].title()}</b> – {hw['explanation']}<br>
+                        <small><i>Recommendation:</i> {hw['recommendation']}</small>
                     </div>
                     """, unsafe_allow_html=True)
-                    if st.button("🔍 Check Drug Interaction", key=f"check_{selected_condition}_{idx}"):
-                        st.session_state.last_herb = herb['name']
-                        st.session_state.active_tab = "🔍 Interaction Checker"
-                        st.rerun()
+            else:
+                st.info("No specific herb warnings for this condition in the database.")
 
-        # --- Bioactive Compounds from Excel (always shown) ---
-        st.markdown("### 🌿 Plants with Bioactive Compounds for This Condition")
-        if species_data is None:
-            st.info("Bioactive compound data is currently unavailable. We'll add it soon!")
-        else:
-            # Determine which bioactivities are relevant for this condition
-            # If the condition is a therapeutic term (e.g., "Malaria"), we look up its bioactivities from use_to_bios
-            # Otherwise, if the condition name is exactly a bioactivity, we use that.
-            relevant_bios = []
-            if selected_condition in use_to_bios:
-                relevant_bios = use_to_bios[selected_condition]
+            # ----------------------------------------------------
+            # 5. Plants with bioactive compounds (from Excel)
+            # ----------------------------------------------------
+            st.markdown("### 🌿 Plants with Bioactive Compounds for This Condition")
+            if species_data is None:
+                st.info("Bioactive compound data is currently unavailable. We'll add it soon!")
             else:
-                # Check if selected_condition appears as a bioactivity in our mapping
-                # First, build reverse mapping of bio_to_use (bioactivity -> display)
-                # but we already have bio_to_display from earlier
-                # Instead, we can search through bio_to_display for a display name match
-                for bio, disp in bio_to_display.items():
-                    if disp == selected_condition:
-                        relevant_bios.append(bio)
-            if not relevant_bios:
-                st.info(f"No specific bioactivity mapping found for {selected_condition}.")
-            else:
-                # Find species that contain any of these bioactivities
-                matching_species = []
-                for sp, compounds in species_data.items():
-                    for comp in compounds:
-                        if any(bio in relevant_bios for bio in comp['bioactivities']):
-                            matching_species.append(sp)
-                            break
-                if matching_species:
-                    for sp in sorted(set(matching_species))[:20]:
-                        with st.expander(f"🌱 {sp}"):
-                            for comp in species_data[sp]:
-                                # Only show compounds that have at least one relevant bioactivity
-                                comp_relevant = any(bio in relevant_bios for bio in comp['bioactivities'])
-                                if comp_relevant:
-                                    st.markdown(f"**Compound:** {comp['compound']}")
-                                    st.markdown(f"**Bioactivities:** {', '.join(comp['bioactivities'])}")
-                                    if comp['pmids']:
-                                        links = ", ".join(f"[{pmid}](https://pubmed.ncbi.nlm.nih.gov/{pmid}/)" for pmid in comp['pmids'])
-                                        st.markdown(f"**References:** {links}")
-                                    st.markdown("---")
+                # Map condition key (e.g., "malaria") to a therapeutic term
+                condition_to_therapeutic = {
+                    "malaria": "Malaria",
+                    "diabetes": "Diabetes",
+                    "hypertension": "Hypertension",
+                    "high blood pressure": "Hypertension",
+                    "hiv": "HIV",
+                    "pregnancy": "Pregnancy",
+                    "liver disease": "Liver disease",
+                    "kidney disease": "Kidney disease",
+                    "bacterial infections": "Bacterial infections",
+                    "inflammation": "Inflammation",
+                    "cancer": "Cancer",
+                    "tuberculosis": "Tuberculosis",
+                    "oxidative stress": "Oxidative stress",
+                    "leishmaniasis": "Leishmaniasis",
+                    "trypanosomiasis": "Trypanosomiasis",
+                    "fungal infections": "Fungal infections",
+                }
+                # Use the condition key (selected_condition_key) to map
+                condition_key_lower = selected_condition_key.lower()
+                therapeutic = condition_to_therapeutic.get(condition_key_lower, None)
+                if therapeutic and therapeutic in use_to_bios:
+                    target_bios = use_to_bios[therapeutic]
+                    matching_species = []
+                    for sp, compounds in species_data.items():
+                        for comp in compounds:
+                            if any(bio in target_bios for bio in comp['bioactivities']):
+                                matching_species.append(sp)
+                                break
+                    if matching_species:
+                        for sp in sorted(set(matching_species))[:20]:
+                            with st.expander(f"🌱 {sp}"):
+                                for comp in species_data[sp]:
+                                    relevant_bios = [b for b in comp['bioactivities'] if b in target_bios]
+                                    if relevant_bios:
+                                        st.markdown(f"**Compound:** {comp['compound']}")
+                                        st.markdown(f"**Bioactivities:** {', '.join(comp['bioactivities'])}")
+                                        if comp['pmids']:
+                                            links = ", ".join(f"[{pmid}](https://pubmed.ncbi.nlm.nih.gov/{pmid}/)" for pmid in comp['pmids'])
+                                            st.markdown(f"**References:** {links}")
+                                        st.markdown("---")
+                    else:
+                        st.info("No plants found with bioactive compounds for this condition.")
                 else:
-                    st.info("No plants found with bioactive compounds for this condition.")
+                    st.info("No bioactive compound mapping available for this condition yet.")
 
-        # Critical Safety Block
-        st.markdown("""
-        <div style="background: #ffefef; border-left: 5px solid #c62828; border-radius: 8px; padding: 1rem; margin: 1rem 0;">
-            <h4 style="margin:0 0 0.5rem 0;">🚨 IMPORTANT SAFETY INFORMATION</h4>
-            <p>• Herbal remedies are supportive, not curative for serious conditions.<br>
-            • Always seek diagnosis before treatment.<br>
-            • Some herbs interact with medications.</p>
-        </div>
-        """, unsafe_allow_html=True)
-        if st.button("🔄 Check interactions before use", width='stretch'):
-            st.session_state.active_tab = "🔍 Interaction Checker"
-            st.rerun()
-
-        with st.expander("📘 Did You Know?"):
+            # ----------------------------------------------------
+            # 6. Safety block and bridge to interaction checker
+            # ----------------------------------------------------
             st.markdown("""
-            Many modern medicines are derived from plants. However, whole herbs contain many compounds that can interact in complex ways.
-            
-            ⚠️ Always consult a healthcare professional before using herbs with your medications.
-            """)
-    else:
-        if search_condition:
-            st.warning(f"Condition '{search_condition}' not found. Try one of the {len(condition_data)} available conditions.")
-        else:
-            st.info("🔍 Search for a condition to explore herbal options (e.g., Malaria, Antibacterial, Anti-inflammatory)")
+            <div style="background: #ffefef; border-left: 5px solid #c62828; border-radius: 8px; padding: 1rem; margin: 1rem 0;">
+                <h4 style="margin:0 0 0.5rem 0;">🚨 IMPORTANT SAFETY INFORMATION</h4>
+                <p>• Herbal remedies are supportive, not curative for serious conditions.<br>
+                • Always seek diagnosis before treatment.<br>
+                • Some herbs interact with medications.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("🔄 Check interactions before use", width='stretch'):
+                st.session_state.active_tab = "🔍 Interaction Checker"
+                st.rerun()
+
+            with st.expander("📘 Did You Know?"):
+                st.markdown("""
+                Many modern medicines are derived from plants. However, whole herbs contain many compounds that can interact in complex ways.
+                
+                ⚠️ Always consult a healthcare professional before using herbs with your medications.
+                """)
 # ------------------------------------------------------------
 # Learn Tab (Placeholder)
 # ------------------------------------------------------------
