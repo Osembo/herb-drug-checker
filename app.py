@@ -27,10 +27,10 @@ if 'report_submitted' not in st.session_state:
 if 'my_meds' not in st.session_state:
     st.session_state.my_meds = []
 if 'active_tab' not in st.session_state:
-    st.session_state.active_tab = "Interaction Checker"
+    st.session_state.active_tab = "🔍 Interaction Checker"
 
 # ------------------------------------------------------------
-# Data loading functions (same as before)
+# Data loading functions
 # ------------------------------------------------------------
 @st.cache_data
 def load_data():
@@ -74,17 +74,22 @@ def load_compounds():
 
 @st.cache_data
 def load_compounds_excel():
+    """Load and process the Kenyan compounds Excel file for bioactivity search."""
     try:
-        import openpyxl
+        import openpyxl  # check if installed
     except ImportError:
         return None
+
     try:
         data_path = Path(__file__).parent / 'kenyan_compounds.xlsx'
         df = pd.read_excel(data_path, sheet_name='molecules (1)')
         df = df.fillna('')
+        # Split lists
         df['Species_list'] = df['Species'].apply(lambda x: [s.strip() for s in x.split(';')] if x else [])
         df['Bioactivities_list'] = df['Bioactivities'].apply(lambda x: [s.strip() for s in x.split(';')] if x else [])
         df['PMIDs_list'] = df['PMIDs'].apply(lambda x: [s.strip() for s in x.split(';')] if x else [])
+
+        # Build species -> list of compounds with bioactivities and PMIDs
         species_data = {}
         for _, row in df.iterrows():
             compound = row['Compound Name']
@@ -99,13 +104,15 @@ def load_compounds_excel():
                     'pmids': pmid_list
                 })
         return species_data
-    except Exception:
+    except Exception as e:
+        st.warning(f"Could not load compounds Excel: {e}")
         return None
 
 # ------------------------------------------------------------
 # Helper functions
 # ------------------------------------------------------------
 def normalize_data(data):
+    """Convert old Excel‑style data to standard format."""
     normalized = []
     for item in data:
         if 'drug' in item:
@@ -204,7 +211,7 @@ for bio, use in bio_to_use.items():
     use_to_bios.setdefault(use, []).append(bio)
 
 # ------------------------------------------------------------
-# CSS (same as before)
+# CSS and UI
 # ------------------------------------------------------------
 st.markdown("""
 <style>
@@ -448,10 +455,14 @@ st.markdown("""
 with st.sidebar:
     st.image("https://img.icons8.com/color/96/000000/kenya.png", width=60)
     st.markdown("### Navigation")
+    options = ["🔍 Interaction Checker", "🌿 Condition Explorer", "📘 Learn", "📞 Feedback"]
+    # Ensure active_tab is valid
+    if st.session_state.active_tab not in options:
+        st.session_state.active_tab = options[0]
     tab = st.radio(
         "Go to",
-        ["🔍 Interaction Checker", "🌿 Condition Explorer", "📘 Learn", "📞 Feedback"],
-        index=["🔍 Interaction Checker", "🌿 Condition Explorer", "📘 Learn", "📞 Feedback"].index(st.session_state.active_tab),
+        options,
+        index=options.index(st.session_state.active_tab),
         label_visibility="collapsed"
     )
     st.session_state.active_tab = tab
@@ -590,7 +601,7 @@ if st.session_state.active_tab == "🔍 Interaction Checker":
                 label_visibility="collapsed"
             )
         with col2:
-            if st.button("➕ Add", use_container_width=True):
+            if st.button("➕ Add", width='stretch'):
                 if new_med and new_med not in st.session_state.my_meds:
                     st.session_state.my_meds.append(new_med)
                     st.rerun()
@@ -665,7 +676,7 @@ if st.session_state.active_tab == "🔍 Interaction Checker":
     # Check Button
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        check_button = st.button(texts['check_button'], type="primary", use_container_width=True)
+        check_button = st.button(texts['check_button'], type="primary", width='stretch')
 
     if check_button:
         if not drug_input or not herb_input:
@@ -1004,7 +1015,7 @@ elif st.session_state.active_tab == "🌿 Condition Explorer":
         </div>
         """, unsafe_allow_html=True)
         # Bridge button
-        if st.button("🔄 Check interactions before use", use_container_width=True):
+        if st.button("🔄 Check interactions before use", width='stretch'):
             st.session_state.active_tab = "🔍 Interaction Checker"
             st.rerun()
 
@@ -1027,7 +1038,6 @@ elif st.session_state.active_tab == "🌿 Condition Explorer":
 elif st.session_state.active_tab == "📘 Learn":
     st.markdown("## 📘 Educational Resources")
     st.markdown("### Herb Monographs")
-    # Reuse existing herb monographs expander?
     if monographs:
         herb_options = [""] + sorted(monographs.keys())
         selected_herb = st.selectbox(
@@ -1097,7 +1107,7 @@ elif st.session_state.active_tab == "📞 Feedback":
     feedback_name = st.text_input("Your name (optional)")
     feedback_email = st.text_input("Your email (optional)")
     feedback_message = st.text_area("Message", height=150)
-    if st.button("Send Feedback", use_container_width=True):
+    if st.button("Send Feedback", width='stretch'):
         if feedback_message.strip():
             st.success("Thank you for your feedback! We'll review it shortly.")
             # In a real app, you'd send this to an email or database.
