@@ -684,7 +684,7 @@ if st.session_state.active_tab == "🌿 Condition Explorer":
         else:
             st.info("No specific herb warnings for this condition in the database.")
 
-        # ----------------------------------------------------
+                # ----------------------------------------------------
         # 6. Plants with bioactive compounds (from Excel)
         # ----------------------------------------------------
         st.markdown("### 🌿 Plants with Bioactive Compounds for This Condition")
@@ -715,8 +715,45 @@ if st.session_state.active_tab == "🌿 Condition Explorer":
                             matching_species.append(sp)
                             break
                 if matching_species:
-                    for sp in sorted(set(matching_species))[:20]:
+                    # Sort species names alphabetically for consistent order
+                    sorted_species = sorted(set(matching_species))
+                    total_species = len(sorted_species)
+
+                    # Pagination settings
+                    per_page = 25
+                    page_key = f"species_page_{selected_condition_name}"
+                    if page_key not in st.session_state:
+                        st.session_state[page_key] = 0
+                    current_page = st.session_state[page_key]
+                    total_pages = (total_species + per_page - 1) // per_page
+
+                    # Clamp page to valid range
+                    if current_page >= total_pages:
+                        current_page = total_pages - 1
+                        st.session_state[page_key] = current_page
+
+                    start_idx = current_page * per_page
+                    end_idx = min(start_idx + per_page, total_species)
+                    page_species = sorted_species[start_idx:end_idx]
+
+                    # Display pagination controls (if more than one page)
+                    if total_pages > 1:
+                        col1, col2, col3 = st.columns([1, 2, 1])
+                        with col1:
+                            if st.button("◀ Previous", key=f"prev_{selected_condition_name}", disabled=(current_page == 0)):
+                                st.session_state[page_key] = current_page - 1
+                                st.rerun()
+                        with col2:
+                            st.markdown(f"<div style='text-align: center;'>Page {current_page+1} of {total_pages}  ({total_species} species total)</div>", unsafe_allow_html=True)
+                        with col3:
+                            if st.button("Next ▶", key=f"next_{selected_condition_name}", disabled=(current_page == total_pages-1)):
+                                st.session_state[page_key] = current_page + 1
+                                st.rerun()
+
+                    # Display species for the current page
+                    for sp in page_species:
                         with st.expander(f"🌱 {sp}"):
+                            # Show all compounds for this species (filtered by relevant bioactivities)
                             for comp in species_data[sp]:
                                 relevant_bios = [b for b in comp['bioactivities'] if b in target_bios]
                                 if relevant_bios:
