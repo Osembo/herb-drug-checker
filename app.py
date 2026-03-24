@@ -191,20 +191,103 @@ def get_canonical_name(search_term):
 
 # Bioactivity mapping
 bio_to_use = {
+    # Malaria
     'anti-plasmodial': 'Malaria',
-    'antibacterial': 'Bacterial infections',
-    'antifungal': 'Fungal infections',
     'antimalarial': 'Malaria',
+
+    # Bacterial infections
+    'antibacterial': 'Bacterial infections',
+    'antimycobacterial': 'Bacterial infections',
+    'antistaphylococcal': 'Bacterial infections',
+    'antityphoid': 'Bacterial infections',
+    'antimicrobial': 'Bacterial infections',  # generic
+
+    # Fungal infections
+    'antifungal': 'Fungal infections',
+    'fungicidal': 'Fungal infections',
+
+    # Viral infections
+    'antiviral': 'Viral infections',
+    'anti-hiv': 'Viral infections',
+    'anti-hcv protease': 'Viral infections',
+
+    # Parasitic infections
+    'antiprotozoal': 'Parasitic infections',
+    'antitrypanosomal': 'Parasitic infections',
+    'anti-leishmanial': 'Parasitic infections',
+    'anthelmintic': 'Parasitic infections',
+    'anti-trychomonas': 'Parasitic infections',
+    'trypanocidal': 'Parasitic infections',
+
+    # Cancer
+    'anticancer': 'Cancer',
     'cytotoxic': 'Cancer',
-    'antioxidant': 'Oxidative stress',
+    'cytotoxicity': 'Cancer',
+    'antiproliferative': 'Cancer',
+    'anti-proliferative': 'Cancer',
+    'anti-colon cancer': 'Cancer',
+    'antileukemia': 'Cancer',
+    'cancer cell growth inhibitory': 'Cancer',
+    'inhibitory against the lewis lung carcinoma in mice': 'Cancer',
+    'antitumor': 'Cancer',
+
+    # Inflammation
     'anti-inflammatory': 'Inflammation',
-    'antileishmanial': 'Leishmaniasis',
-    'antitrypanosomal': 'Trypanosomiasis',
-    'antimycobacterial': 'Tuberculosis',
-    'larvicidal': 'Mosquito control',
+
+    # Oxidative stress (all radical scavenging variants)
+    'antioxidant': 'Oxidative stress',
+    'antioxidative': 'Oxidative stress',
+    'antioxidant potential': 'Oxidative stress',
     'radical scavenging': 'Oxidative stress',
-    'antimicrobial': 'Microbial infections',
-    'insect repellent': 'Insect repellent',
+    'radical scavenging towards 2,2-diphenyl-1-picrylhydrazyl radical (dpph)': 'Oxidative stress',
+    '2-diphenyl-1-picrylhydrazyl radical (dpph)': 'Oxidative stress',
+    'radical scavenging against dpph': 'Oxidative stress',
+    'radical scavenging towards 2,2-diphenyl-1-picrylhydrazyl (dpph) radical': 'Oxidative stress',
+    'antiradical scavenging': 'Oxidative stress',
+    'prevention of lipid peroxidation': 'Oxidative stress',
+    'inhibition of myeloperoxidase': 'Oxidative stress',
+
+    # Pain
+    'analgesic': 'Pain',
+    'antinociceptive': 'Pain',
+    'antiallodynic': 'Pain',
+
+    # Diabetes
+    'antidiabetic': 'Diabetes',
+    'alpha-glucosidase inhibitory': 'Diabetes',
+
+    # Hypertension
+    'antihypertensive': 'Hypertension',
+    'vasorelaxation': 'Hypertension',
+    'vasorelaxant': 'Hypertension',
+
+    # Sickle cell disease
+    'anti-sickling': 'Sickle cell disease',
+
+    # Liver conditions
+    'hepatoprotective': 'Liver conditions',
+    'protective against ccl4-induced injury on the human hepatoma cell line (huh7)': 'Liver conditions',
+
+    # Neurodegenerative
+    'neurotrophic': 'Neurodegenerative conditions',
+    'anti-acetylcholinesterase': 'Neurodegenerative conditions',
+
+    # Mosquito control
+    'larvicidal': 'Mosquito control',
+    'mosquito larvicidal potency': 'Mosquito control',
+    'insect repellent': 'Mosquito control',
+    'repellent': 'Mosquito control',
+    'insect attractant': 'Mosquito control',
+    'insecticidal': 'Mosquito control',
+
+    # Other
+    'molluscicidal': 'Mollusc control',
+    'antiseptic': 'Antiseptic',
+    'antifouling': 'Antifouling',
+    'antifeedant': 'Antifeedant',
+    'nematicidal': 'Nematicidal',
+    'taste modifying properties': 'Taste modification',
+    'radicle growth inhibition': 'Radicle growth inhibition',
 }
 use_to_bios = {}
 for bio, use in bio_to_use.items():
